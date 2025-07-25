@@ -1,0 +1,209 @@
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { RootState } from "../../Redux/Store";
+import { useDispatch } from "react-redux";
+import { useUpdateCartItemMutation,useRemoveCartItemMutation, useRemoveAllCartItemMutation } from "../../Redux/Api/userApi";
+import { addToCartAction } from "../../Redux/Reducer/cartSlice";
+import { toast } from "react-toastify";
+import FullscreenLoader from "../../Components/Loader/FullscreenLoader";
+
+const Cart: React.FC = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [shippingOption, setShippingOption] = useState<string>("");
+  const [shippingCost, setShippingCost] = useState<number>(0);
+  const [shippingError, setShippingError] = useState<string>("");
+  const [UpdateCartItem,{isLoading:l1}] = useUpdateCartItemMutation();
+  const [removeCartItem,{isLoading:l2}] = useRemoveCartItemMutation();
+  const [removeAllCartItem,{isLoading:l3}] = useRemoveAllCartItemMutation();
+  const [clickedButton,setClickedButton] = useState<string>("");
+  const { cart } = useSelector<RootState,CartState>((state) => state.cartSlice);
+
+  // Calculate subtotal
+  const subtotal = cart ? cart?.items.reduce((sum: number, item: any) => sum + item.stamp.price * item.quantity,0) : 0 ;
+
+  const total = subtotal + shippingCost;
+
+  const handleShippingChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const option = e.target.value;
+    setShippingOption(option);
+    setShippingError("");
+    dispatch(addToCartAction({CartData:cart!,ShippingType:option}));
+    switch (option) {
+      case "us":
+        setShippingCost(5);
+        break;
+      case "worldwide":
+        setShippingCost(25);
+        break;
+      default:
+        setShippingCost(0);
+    }
+  };
+
+  const handleCheckout = () => {
+    if (!shippingOption) {
+      setShippingError("Please select a shipping option");
+      return;
+    }
+    navigate("/paymentmethod", { state: { cart, total, shippingOption } });
+  };
+
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-100 p-4 sm:p-8">
+      <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Shopping Cart</h1>
+
+      {(cart?.items.length === 0 || cart?.items == null) ? (
+        <div className="text-center">
+          <p className="text-gray-600">Your cart is empty.</p>
+        </div>
+      ) : (
+        <div>
+          {( l2 || l3 ) && <FullscreenLoader/>}
+          {cart?.items.map((item) => (
+            <div key={item._id} className="mb-4 p-4 bg-white shadow-md rounded-lg flex items-center space-x-4">
+              <img
+                src={item.stamp.images[0]?.publicUrl}
+                alt={item.stamp.name}
+                className="w-24 h-24 object-contain rounded-lg border border-gray-300"
+              />
+
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold">{item.stamp.name}</h2>
+                <p className="mb-1 sm:mb-2">Price: ${item.stamp.price.toFixed(2)}</p>
+                <p className="mb-1 sm:mb-2 font-bold">Total: ${(item.stamp.price * item.quantity).toFixed(2)}</p>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    className="px-3 py-1 border border-gray-500 rounded hover:bg-gray-200"
+                    onClick={async()=>{
+                      setClickedButton(item.stamp._id);
+                      const stamp = await UpdateCartItem({stampId:item.stamp._id,delta:-1});
+                      if(stamp.data)
+                        dispatch(addToCartAction({CartData:stamp.data!,ShippingType:shippingOption}));
+                        
+                       if (stamp.error) {
+                            const errorMessage = (stamp.error as { data?: { message?: string } })?.data?.message || "Something went wrong";
+                            toast.error(errorMessage);
+                          }
+                    }}
+                  >
+                    -
+                  </button>
+                  {(l1 && (clickedButton == item.stamp._id)) ? <TinyLoader/> : <span className="text-lg">{item.quantity}</span>}
+                  <button
+                    className="px-3 py-1 border border-gray-500 rounded hover:bg-gray-200 disabled:bg-gray-300"
+                    disabled = {item.quantity == item.stamp.stock}
+                    onClick={async()=>{
+                      setClickedButton(item.stamp._id);
+                      const stamp = await UpdateCartItem({stampId:item.stamp._id,delta:1});
+                      if(stamp.data){
+                        dispatch(addToCartAction({CartData:stamp.data!,ShippingType:shippingOption}));
+                      }
+
+
+                      if (stamp.error) {
+                        const errorMessage = (stamp.error as { data?: { message?: string } })?.data?.message || "Something went wrong";
+                        toast.error(errorMessage);
+                      }
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <button
+                className="bg-red-500 text-white px-3 py-2 rounded hover:bg-red-600"
+                onClick={async () => {
+                  const stamp = await removeCartItem(item.stamp._id);
+                  if(stamp.data){
+                    dispatch(addToCartAction({CartData:stamp.data!,ShippingType:shippingOption}));
+                    toast.success(`${item.stamp.name} is removed from cart`);
+                  }
+
+                  if (stamp.error) {
+                    const errorMessage = (stamp.error as { data?: { message?: string } })?.data?.message || "Something went wrong";
+                    toast.error(errorMessage);
+                  }
+                }}
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+
+          {/* Shipping Options Section */}
+          <div className="mt-6 p-4 bg-white shadow-md rounded-lg">
+            <h2 className="text-lg font-semibold mb-3">
+              Shipping Options <span className="text-red-500">*</span>
+            </h2>
+            <select
+              value={shippingOption}
+              onChange={handleShippingChange}
+              className={`ml-2 p-1 border ${shippingError ? "border-red-500" : "border-gray-300"} rounded-md`}
+              required
+            >
+              <option value="">Select Shipping Option</option>
+              <option value="us">US Shipping: $5</option>
+              <option value="worldwide">Worldwide Shipping: $25</option>
+            </select>
+            {shippingError && <p className="text-red-500 text-sm mt-1">{shippingError}</p>}
+          </div>
+
+          {/* Total & Buttons Section */}
+          <div className="mt-4 sm:mt-6 p-4 bg-white shadow-md rounded-lg">
+            <div className="mb-2">
+              <p className="text-gray-600">Subtotal: ${subtotal.toFixed(2)}</p>
+              <p className="text-gray-600">Shipping: ${shippingCost.toFixed(2)}</p>
+              <h2 className="text-lg sm:text-xl font-bold mt-2">Total: ${total.toFixed(2)}</h2>
+            </div>
+
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 mt-4">
+              <button
+                className={`bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 ${!shippingOption ? "opacity-50 cursor-not-allowed" : ""}`}
+                onClick={handleCheckout}
+                disabled={!shippingOption}
+              >
+                Checkout
+              </button>
+              <button
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+                onClick={async()=>{
+                  const res = await removeAllCartItem(cart?._id as string);
+                  if(res.data){
+                    dispatch(addToCartAction(null));
+                  }
+
+                  if (res.error) {
+                    const errorMessage = (res.error as { data?: { message?: string } })?.data?.message || "Something went wrong";
+                    toast.error(errorMessage);
+                  }
+                }}
+              >
+                Clear Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6 flex justify-center">
+        <button
+          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+          onClick={() => navigate("/retail-sales")}
+        >
+          Continue Shopping
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Cart;
+
+
+const TinyLoader = () => (
+  <div className="w-3 h-3 border-[2px] border-t-transparent border-r-blue-500 border-b-transparent border-l-blue-500 rounded-full animate-spin"></div>
+);
