@@ -17,6 +17,9 @@ export const userApi = createApi({
       url: "/api/v1/user/login",
       method: 'POST',
       body: user,
+      headers: {
+      "Content-Type": "application/json",
+      },
       }),
     }),
     UserInfo:build.query<RegisterResponse,void>({
