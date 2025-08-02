@@ -3,7 +3,7 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 console.log("import.meta.env.VITE_BACKEND_URL:",import.meta.env.VITE_BACKEND_URL);
 export const userApi = createApi({
   reducerPath: 'userApi',
-  baseQuery: fetchBaseQuery({ baseUrl: import.meta.env.VITE_BACKEND_URL,credentials:"include" }),
+  baseQuery: fetchBaseQuery({ baseUrl:"https://agstamp-backend.onrender.com",credentials:"include" }),
   endpoints: (build) => ({
     userRegister: build.mutation<RegisterResponse,UserRegister>({
         query: (user) => ({
