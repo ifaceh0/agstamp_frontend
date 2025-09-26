@@ -275,8 +275,7 @@ const ContactUs: React.FC = () => {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
-                  className="w-full rounded-md border-gray-300 p-3 text-black focus:outline-none bg-white focus:ring-2 focus:ring-blue-300" 
-                  pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+                  className="w-full rounded-md border-gray-300 p-3 text-black focus:outline-none bg-white focus:ring-2 focus:ring-blue-300"
                   title="Email should start with a letter and follow a valid format (e.g., example123@domain.com)"
                   required
                 />
