@@ -193,7 +193,7 @@
 // export default ContactUs;
 
 import React, { useState } from "react";
-import ReCAPTCHA from 'react-google-recaptcha';
+//import ReCAPTCHA from 'react-google-recaptcha';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faFacebook, faInstagram, faTwitter } from "@fortawesome/free-brands-svg-icons";
 import { contactus } from "../../assets/image";
@@ -204,23 +204,23 @@ import { toast } from "react-toastify";
 const ContactUs: React.FC = () => {
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
   const [loading, setLoading] = useState(false);
-  const [captchaValue, setCaptchaValue] = useState<string | null>(null);
+  //const [captchaValue, setCaptchaValue] = useState<string | null>(null);
   const [contact] = useContactusMutation();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleCaptchaChange = (value: string | null) => {
-    setCaptchaValue(value);
-  };
+  //const handleCaptchaChange = (value: string | null) => {
+    //setCaptchaValue(value);
+  //};
 
   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!captchaValue) {
-        alert("Please verify the CAPTCHA");
-        return;
-      }
+      //if (!captchaValue) {
+        //alert("Please verify the CAPTCHA");
+        //return;
+      //}
       setLoading(true);
       const res = await contact(formData);
       setLoading(false);
@@ -308,9 +308,9 @@ const ContactUs: React.FC = () => {
                   required
                 />
               </div>
-              <div className="mb-6">
+              {/*<div className="mb-6">
                 <ReCAPTCHA sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI" onChange={handleCaptchaChange} />
-              </div>
+              </div>*/}
               <div className="flex justify-center items-center">
                 <button
                   type="submit"
