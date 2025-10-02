@@ -1,7 +1,19 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import FullscreenLoader from "../../Components/Loader/FullscreenLoader";
+import { Category } from "../../types"; // adjust path
+
+// ✅ Fix StampForm to hold category IDs (strings), not objects
+interface StampForm {
+  name: string;
+  description: string;
+  price: number;
+  stock: number;
+  images: File[];
+  beginDate: string;
+  categories: string[]; // store IDs only
+}
 
 const AddStamp: React.FC = () => {
   const [form, setForm] = useState<StampForm>({
@@ -11,25 +23,63 @@ const AddStamp: React.FC = () => {
     stock: 0,
     images: [],
     beginDate: "",
-    categories: "",
+    categories: [],
   });
 
+  const [categories, setCategories] = useState<Category[]>([]);
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+  const [newCategory, setNewCategory] = useState("");
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
+
+  // Fetch categories
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/admin/getcategories`,
+        { withCredentials: true }
+      );
+      setCategories(res.data);
+    } catch (error: any) {
+      toast.error(error.response?.data?.error || "Failed to load categories");
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   function removeLeadingZeros(value: string): string {
-  const cleaned = value.replace(/^0+/, "");
-  return cleaned === "" ? "0" : cleaned;
-}
+    const cleaned = value.replace(/^0+/, "");
+    return cleaned === "" ? "0" : cleaned;
+  }
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: name === "price" || name === "stock" ? (name === "stock" ? Number(removeLeadingZeros(value)) : Number(value))  : value,
-    }));
+
+    if (name === "categories") {
+      // ✅ Handle category selection (multi or single)
+      setForm((prev) => ({
+        ...prev,
+        categories: [value], // single select
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]:
+          name === "price" || name === "stock"
+            ? name === "stock"
+              ? Number(removeLeadingZeros(value))
+              : Number(value)
+            : value,
+      }));
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,9 +103,7 @@ const AddStamp: React.FC = () => {
         images: [...prev.images, ...validFiles],
       }));
 
-      const newPreviews = validFiles.map((file) =>
-        URL.createObjectURL(file)
-      );
+      const newPreviews = validFiles.map((file) => URL.createObjectURL(file));
       setPreviewImages((prev) => [...prev, ...newPreviews]);
     }
   };
@@ -68,6 +116,11 @@ const AddStamp: React.FC = () => {
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => previewImages.forEach((url) => URL.revokeObjectURL(url));
+  }, [previewImages]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -76,7 +129,7 @@ const AddStamp: React.FC = () => {
       return;
     }
 
-    if (form.stock <= 0) {
+    if (form.stock < 0) {
       toast.error("Stock cannot be negative");
       return;
     }
@@ -91,7 +144,7 @@ const AddStamp: React.FC = () => {
       return;
     }
 
-    if (!form.categories) {
+    if (!form.categories.length) {
       toast.error("Please select a category");
       return;
     }
@@ -104,21 +157,22 @@ const AddStamp: React.FC = () => {
       formData.append("price", form.price.toString());
       formData.append("stock", form.stock.toString());
       formData.append("beginDate", form.beginDate);
-      formData.append("categories", form.categories);
+
+      // ✅ send array of IDs as JSON
+      formData.append("categories", JSON.stringify(form.categories));
+
       form.images.forEach((file) => formData.append("images", file));
 
       const res = await axios.post(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/admin/addStamp`,
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
           withCredentials: true,
         }
       );
 
-      toast.success(res.data?.message);
+      toast.success(res.data?.message || "Stamp added successfully");
       setForm({
         name: "",
         description: "",
@@ -126,7 +180,7 @@ const AddStamp: React.FC = () => {
         stock: 0,
         images: [],
         beginDate: "",
-        categories: "",
+        categories: [],
       });
       setPreviewImages([]);
     } catch (error: any) {
@@ -146,7 +200,10 @@ const AddStamp: React.FC = () => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Stamp Name
           </label>
           <input
@@ -163,32 +220,43 @@ const AddStamp: React.FC = () => {
 
         {/* Categories */}
         <div>
-          <label htmlFor="categories" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="categories"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Category
           </label>
           <select
             id="categories"
             name="categories"
-            value={form.categories}
+            value={form.categories[0] || ""} // ✅ single select
             onChange={handleChange}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="">Select a category</option>
-            <option value="Russia 1858-1918">Russia 1858-1918</option>
-            <option value="Russia 1919-1941">Russia 1919-1941</option>
-            <option value="Russia 1941-2000">Russia 1941-2000</option>
-            <option value="Russia Airmails">Russia Airmails</option>
-            <option value="Russia Semi-postal">Russia Semi-postal</option>
-            <option value="Local issues">Local issues</option>
-            <option value="Offices Abroad">Offices Abroad</option>
-            <option value="Foreign Issues">Foreign Issues</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>
+                {cat.name}
+              </option>
+            ))}
           </select>
+
+          <button
+            type="button"
+            className="text-blue-600 mt-2 underline"
+            onClick={() => setShowModal(true)}
+          >
+            + Add New Category
+          </button>
         </div>
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Description
           </label>
           <textarea
@@ -206,7 +274,10 @@ const AddStamp: React.FC = () => {
         {/* Price, Stock, Begin Date */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Price ($)
             </label>
             <input
@@ -224,7 +295,10 @@ const AddStamp: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="stock"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Stock Quantity
             </label>
             <input
@@ -241,7 +315,10 @@ const AddStamp: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="beginDate" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="beginDate"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Begin Date
             </label>
             <input
@@ -256,31 +333,11 @@ const AddStamp: React.FC = () => {
           </div>
         </div>
 
-        {/* Categories */}
-        {/* <div>
-          <label htmlFor="categories" className="block text-sm font-medium text-gray-700 mb-1">
-            Category
-          </label>
-          <select
-            id="categories"
-            name="categories"
-            value={form.categories}
-            onChange={handleChange}
-            required
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
-            <option value="">Select a category</option>
-            <option value="Russia 1858-1918">Russia 1858-1918</option>
-            <option value="Russia 1919-1941">Russia 1919-1941</option>
-            <option value="Russia 1941-2000">Russia 1941-2000</option>
-            <option value="Russia Airmails">Russia Airmails</option>
-            <option value="Russia Semi-postal">Russia Semi-postal</option>
-          </select>
-        </div> */}
-
         {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Images</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Images
+          </label>
           <input
             id="file-upload"
             name="images"
@@ -296,7 +353,9 @@ const AddStamp: React.FC = () => {
         {/* Image Preview */}
         {previewImages.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Preview Images</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Preview Images
+            </h3>
             <div className="flex flex-wrap gap-4">
               {previewImages.map((preview, index) => (
                 <div key={index} className="relative group">
@@ -328,6 +387,63 @@ const AddStamp: React.FC = () => {
           </button>
         </div>
       </form>
+
+      {/* Add Category Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded shadow-md w-96">
+            <h3 className="text-lg font-semibold mb-4">Add New Category</h3>
+            <input
+              type="text"
+              placeholder="Category name"
+              className="w-full border p-2 rounded mb-4"
+              value={newCategory}
+              onChange={(e) => setNewCategory(e.target.value)}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={() => setShowModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+                disabled={isAddingCategory}
+                onClick={async () => {
+                  if (!newCategory.trim()) {
+                    toast.error("Category name required");
+                    return;
+                  }
+                  try {
+                    setIsAddingCategory(true);
+                    const res = await axios.post(
+                      `${import.meta.env.VITE_BACKEND_URL}/api/v1/admin/addcategories`,
+                      { name: newCategory },
+                      { withCredentials: true }
+                    );
+                    toast.success("Category added");
+                    setNewCategory("");
+                    setShowModal(false);
+                    fetchCategories();
+                    // ✅ auto-select newly added category
+                    setForm((prev) => ({
+                      ...prev,
+                      categories: [res.data._id],
+                    }));
+                  } catch (error: any) {
+                    toast.error(error.response?.data?.error || "Failed to add");
+                  } finally {
+                    setIsAddingCategory(false);
+                  }
+                }}
+              >
+                {isAddingCategory ? "Adding..." : "Add"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
