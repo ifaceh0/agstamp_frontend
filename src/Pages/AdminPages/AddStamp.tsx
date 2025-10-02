@@ -2,12 +2,9 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import FullscreenLoader from "../../Components/Loader/FullscreenLoader";
+import { Category } from "../../types"; // adjust path
 
-interface Category {
-  _id: string;
-  name: string;
-}
-
+// ✅ Fix StampForm to hold category IDs (strings), not objects
 interface StampForm {
   name: string;
   description: string;
@@ -15,10 +12,8 @@ interface StampForm {
   stock: number;
   images: File[];
   beginDate: string;
-  categories: Category[] ;
+  categories: string[]; // store IDs only
 }
-
-
 
 const AddStamp: React.FC = () => {
   const [form, setForm] = useState<StampForm>({
@@ -62,18 +57,29 @@ const AddStamp: React.FC = () => {
   }
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]:
-        name === "price" || name === "stock"
-          ? name === "stock"
-            ? Number(removeLeadingZeros(value))
-            : Number(value)
-          : value,
-    }));
+
+    if (name === "categories") {
+      // ✅ Handle category selection (multi or single)
+      setForm((prev) => ({
+        ...prev,
+        categories: [value], // single select
+      }));
+    } else {
+      setForm((prev) => ({
+        ...prev,
+        [name]:
+          name === "price" || name === "stock"
+            ? name === "stock"
+              ? Number(removeLeadingZeros(value))
+              : Number(value)
+            : value,
+      }));
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -138,7 +144,7 @@ const AddStamp: React.FC = () => {
       return;
     }
 
-    if (!form.categories) {
+    if (!form.categories.length) {
       toast.error("Please select a category");
       return;
     }
@@ -151,11 +157,10 @@ const AddStamp: React.FC = () => {
       formData.append("price", form.price.toString());
       formData.append("stock", form.stock.toString());
       formData.append("beginDate", form.beginDate);
-      // ✅ send array of IDs instead of whole objects
-      formData.append(
-        "categories",
-        JSON.stringify(form.categories.map(cat => cat._id))
-      );
+
+      // ✅ send array of IDs as JSON
+      formData.append("categories", JSON.stringify(form.categories));
+
       form.images.forEach((file) => formData.append("images", file));
 
       const res = await axios.post(
@@ -167,7 +172,7 @@ const AddStamp: React.FC = () => {
         }
       );
 
-      toast.success(res.data?.message);
+      toast.success(res.data?.message || "Stamp added successfully");
       setForm({
         name: "",
         description: "",
@@ -189,11 +194,16 @@ const AddStamp: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto mt-10 bg-white p-8 rounded-lg shadow-md">
       {isLoading && <FullscreenLoader />}
-      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">Add New Stamp</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+        Add New Stamp
+      </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Name */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Stamp Name
           </label>
           <input
@@ -210,13 +220,16 @@ const AddStamp: React.FC = () => {
 
         {/* Categories */}
         <div>
-          <label htmlFor="categories" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="categories"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Category
           </label>
           <select
             id="categories"
             name="categories"
-            value={form.categories.map(cat => cat._id).join(",")} // Join IDs for select value
+            value={form.categories[0] || ""} // ✅ single select
             onChange={handleChange}
             required
             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -240,7 +253,10 @@ const AddStamp: React.FC = () => {
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
             Description
           </label>
           <textarea
@@ -258,7 +274,10 @@ const AddStamp: React.FC = () => {
         {/* Price, Stock, Begin Date */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="price"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Price ($)
             </label>
             <input
@@ -276,7 +295,10 @@ const AddStamp: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="stock"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Stock Quantity
             </label>
             <input
@@ -293,7 +315,10 @@ const AddStamp: React.FC = () => {
           </div>
 
           <div>
-            <label htmlFor="beginDate" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="beginDate"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Begin Date
             </label>
             <input
@@ -310,7 +335,9 @@ const AddStamp: React.FC = () => {
 
         {/* Image Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Images</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Images
+          </label>
           <input
             id="file-upload"
             name="images"
@@ -326,7 +353,9 @@ const AddStamp: React.FC = () => {
         {/* Image Preview */}
         {previewImages.length > 0 && (
           <div>
-            <h3 className="text-sm font-medium text-gray-700 mb-2">Preview Images</h3>
+            <h3 className="text-sm font-medium text-gray-700 mb-2">
+              Preview Images
+            </h3>
             <div className="flex flex-wrap gap-4">
               {previewImages.map((preview, index) => (
                 <div key={index} className="relative group">
@@ -397,8 +426,11 @@ const AddStamp: React.FC = () => {
                     setNewCategory("");
                     setShowModal(false);
                     fetchCategories();
-                    // Optional: auto-select newly added category
-                    setForm((prev) => ({ ...prev, categories: res.data._id }));
+                    // ✅ auto-select newly added category
+                    setForm((prev) => ({
+                      ...prev,
+                      categories: [res.data._id],
+                    }));
                   } catch (error: any) {
                     toast.error(error.response?.data?.error || "Failed to add");
                   } finally {

@@ -512,6 +512,7 @@ import {
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import FullscreenLoader from "../../Components/Loader/FullscreenLoader";
+import { Stamp } from "../../types"; // Adjust path if needed
 
 const AllStamp = () => {
   const { data: data1, isLoading: load } = useAllStampsQuery();
@@ -532,8 +533,17 @@ const AllStamp = () => {
 
   useEffect(() => {
     if (data1) {
-      setStamps(data1.stamps);
-      setFilteredStamps(data1.stamps);
+      // Map categories to array if needed
+      const mappedStamps = data1.stamps.map((stamp: any) => ({
+        ...stamp,
+        categories: Array.isArray(stamp.categories)
+          ? stamp.categories
+          : typeof stamp.categories === "string"
+            ? [stamp.categories]
+            : [],
+      }));
+      setStamps(mappedStamps);
+      setFilteredStamps(mappedStamps);
       setCurrentPage(1);
     }
   }, [data1?.stamps]);
@@ -546,10 +556,14 @@ const AllStamp = () => {
       let valueA: any;
       let valueB: any;
 
-      // Handle special cases
+      // Handle category sort (array of categories)
       if (sortConfig.key === "categories") {
-        valueA = a.categories?.name || "";
-        valueB = b.categories?.name || "";
+        valueA = Array.isArray(a.categories)
+          ? a.categories.map((cat: any) => cat?.name).join(", ")
+          : "";
+        valueB = Array.isArray(b.categories)
+          ? b.categories.map((cat: any) => cat?.name).join(", ")
+          : "";
       } else {
         valueA = a[sortConfig.key as keyof Stamp];
         valueB = b[sortConfig.key as keyof Stamp];
@@ -564,7 +578,6 @@ const AllStamp = () => {
         valueB = valueB.getTime();
       }
 
-      // Compare values
       if (valueA < valueB) {
         return sortConfig.direction === "ascending" ? -1 : 1;
       }
@@ -577,21 +590,21 @@ const AllStamp = () => {
 
   useEffect(() => {
     if (stamps) {
-        const filtered = stamps.filter(
-          (stamp) =>
-          stamp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          stamp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (stamp.categories?.name && stamp.categories.name.toLowerCase().includes(searchTerm.toLowerCase()))
-        );
+      const filtered = stamps.filter((stamp) =>
+        stamp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        stamp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (Array.isArray(stamp.categories) &&
+          stamp.categories.some((cat: any) =>
+            cat?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+          ))
+      );
       
-      // Apply sorting to filtered results
       const sorted = applySort(filtered);
       setFilteredStamps(sorted);
       setCurrentPage(1);
     }
   }, [searchTerm, stamps, sortConfig]);
 
-  // Get current stamps for the current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentStamps = filteredStamps?.slice(indexOfFirstItem, indexOfLastItem) || [];
@@ -602,22 +615,16 @@ const AllStamp = () => {
     return date.toLocaleString();
   };
 
-  // Handle sorting request
   const requestSort = (key: keyof Stamp | "categories") => {
     let direction: "ascending" | "descending" = "ascending";
-    
-    // If clicking the same key, toggle direction
     if (sortConfig && sortConfig.key === key) {
       direction = sortConfig.direction === "ascending" ? "descending" : "ascending";
     }
-    
     setSortConfig({ key, direction });
   };
 
-  // Get sort indicator for a column
   const getSortIndicator = (key: keyof Stamp | "categories") => {
     if (!sortConfig || sortConfig.key !== key) return null;
-    
     return sortConfig.direction === "ascending" ? (
       <FiArrowUp className="ml-1 inline" size={14} />
     ) : (
@@ -625,7 +632,6 @@ const AllStamp = () => {
     );
   };
 
-  // Pagination controls component
   const PaginationControls = () => (
     <div className="flex items-center justify-between mt-4">
       <div className="text-sm text-gray-500">
@@ -643,9 +649,8 @@ const AllStamp = () => {
         >
           <FiChevronLeft className="h-4 w-4" />
         </button>
-        
+
         {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-          // Show pages around current page
           let pageNum;
           if (totalPages <= 5) {
             pageNum = i + 1;
@@ -656,7 +661,7 @@ const AllStamp = () => {
           } else {
             pageNum = currentPage - 2 + i;
           }
-          
+
           return (
             <button
               key={pageNum}
@@ -671,11 +676,11 @@ const AllStamp = () => {
             </button>
           );
         })}
-        
+
         {totalPages > 5 && currentPage < totalPages - 2 && (
           <span className="px-3 py-1 text-gray-500">...</span>
         )}
-        
+
         {totalPages > 5 && currentPage < totalPages - 2 && (
           <button
             onClick={() => setCurrentPage(totalPages)}
@@ -684,7 +689,7 @@ const AllStamp = () => {
             {totalPages}
           </button>
         )}
-        
+
         <button
           onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
           disabled={currentPage === totalPages || totalPages === 0}
@@ -712,7 +717,6 @@ const AllStamp = () => {
         />
       </div>
 
-      {/* Pagination at the top */}
       <PaginationControls />
 
       <div className="overflow-x-auto border border-gray-200 rounded-lg shadow-sm mt-2">
@@ -721,108 +725,61 @@ const AllStamp = () => {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Image</th>
-              
-              {/* Sortable Name Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("name")}
               >
-                <div className="flex items-center">
-                  Name
-                  {getSortIndicator("name")}
-                </div>
+                <div className="flex items-center">Name {getSortIndicator("name")}</div>
               </th>
-              
-              {/* Sortable Category Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("categories")}
               >
-                <div className="flex items-center">
-                  Category
-                  {getSortIndicator("categories")}
-                </div>
+                <div className="flex items-center">Category {getSortIndicator("categories")}</div>
               </th>
-              
               <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Description</th>
-              
-              {/* Sortable Price Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("price")}
               >
-                <div className="flex items-center">
-                  Price
-                  {getSortIndicator("price")}
-                </div>
+                <div className="flex items-center">Price {getSortIndicator("price")}</div>
               </th>
-              
-              {/* Sortable Stock Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("stock")}
               >
-                <div className="flex items-center">
-                  Stock
-                  {getSortIndicator("stock")}
-                </div>
+                <div className="flex items-center">Stock {getSortIndicator("stock")}</div>
               </th>
-              
-              {/* Sortable Status Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("active")}
               >
-                <div className="flex items-center">
-                  Status
-                  {getSortIndicator("active")}
-                </div>
+                <div className="flex items-center">Status {getSortIndicator("active")}</div>
               </th>
-              
-              {/* Sortable Begin Date Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("beginDate")}
               >
-                <div className="flex items-center">
-                  Begin Date
-                  {getSortIndicator("beginDate")}
-                </div>
+                <div className="flex items-center">Begin Date {getSortIndicator("beginDate")}</div>
               </th>
-              
-              {/* Sortable End Date Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("endDate")}
               >
-                <div className="flex items-center">
-                  End Date
-                  {getSortIndicator("endDate")}
-                </div>
+                <div className="flex items-center">End Date {getSortIndicator("endDate")}</div>
               </th>
-              
-              {/* Sortable Created Date Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("createdAt")}
               >
-                <div className="flex items-center">
-                  Created
-                  {getSortIndicator("createdAt")}
-                </div>
+                <div className="flex items-center">Created {getSortIndicator("createdAt")}</div>
               </th>
-              
-              {/* Sortable Updated Date Header */}
               <th 
                 className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                 onClick={() => requestSort("updatedAt")}
               >
-                <div className="flex items-center">
-                  Updated
-                  {getSortIndicator("updatedAt")}
-                </div>
+                <div className="flex items-center">Updated {getSortIndicator("updatedAt")}</div>
               </th>
-              
               <th className="px-4 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
@@ -831,11 +788,7 @@ const AllStamp = () => {
               <tr key={stamp._id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 whitespace-nowrap">
                   {stamp.images?.[0]?.publicUrl ? (
-                    <img
-                      className="h-10 w-10 rounded-full object-cover"
-                      src={stamp.images[0].publicUrl}
-                      alt={stamp.name}
-                    />
+                    <img className="h-10 w-10 rounded-full object-cover" src={stamp.images[0].publicUrl} alt={stamp.name} />
                   ) : (
                     <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
                       <FiImage className="text-gray-400" />
@@ -846,18 +799,20 @@ const AllStamp = () => {
                   {stamp.name.length > 10 ? stamp.name.substring(0, 9) + "..." : stamp.name}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  {stamp.categories?.name || "—"}
+                  {Array.isArray(stamp.categories)
+                    ? stamp.categories.map((cat: any) => cat?.name).join(", ")
+                    : "—"}
                 </td>
                 <td className="px-4 py-3 max-w-xs line-clamp-2 text-gray-500">
                   {stamp.description.length > 10 ? stamp.description.substring(0, 9) + "..." : stamp.description}
                 </td>
-                <td className="px-4 py-3 font-semibold text-gray-900">
-                  ${stamp.price.toFixed(2)}
-                </td>
+                <td className="px-4 py-3 font-semibold text-gray-900">${stamp.price.toFixed(2)}</td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    stamp.stock > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}>
+                  <span
+                    className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                      stamp.stock > 0 ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                    }`}
+                  >
                     {stamp.stock} {stamp.stock === 1 ? "item" : "items"}
                   </span>
                 </td>
@@ -866,9 +821,6 @@ const AllStamp = () => {
                     className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${
                       stamp.active ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                     }`}
-                    onClick={() => {
-                      console.log("Toggle status for:", stamp._id);
-                    }}
                   >
                     {stamp.active ? (
                       <FiToggleRight className="h-5 w-5 text-green-600" />
@@ -884,12 +836,8 @@ const AllStamp = () => {
                 <td className="px-4 py-3 whitespace-nowrap text-gray-500">
                   {stamp.endDate ? formatDate(stamp.endDate) : "—"}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                  {formatDate(stamp.createdAt as string)}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap text-gray-500">
-                  {formatDate(stamp.updatedAt as string)}
-                </td>
+                <td className="px-4 py-3 whitespace-nowrap text-gray-500">{formatDate(stamp.createdAt as string)}</td>
+                <td className="px-4 py-3 whitespace-nowrap text-gray-500">{formatDate(stamp.updatedAt as string)}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                   <div className="flex space-x-3">
                     <Link
@@ -900,16 +848,22 @@ const AllStamp = () => {
                     </Link>
                     <button
                       className={`${
-                        stamp?.active
-                          ? "text-gray-600 hover:text-gray-900"
-                          : "text-red-600 hover:text-red-900"
+                        stamp?.active ? "text-gray-600 hover:text-gray-900" : "text-red-600 hover:text-red-900"
                       } p-1 rounded-md hover:bg-red-50 transition-colors`}
                       disabled={stamp?.active}
                       onClick={async () => {
                         try {
                           const result = await deleteStamp(stamp._id).unwrap();
                           if (result?.stamps) {
-                            setStamps(result.stamps);
+                            const mappedStamps = result.stamps.map((stamp: any) => ({
+                              ...stamp,
+                              categories: Array.isArray(stamp.categories)
+                                ? stamp.categories
+                                : typeof stamp.categories === "string"
+                                  ? [stamp.categories]
+                                  : [],
+                            }));
+                            setStamps(mappedStamps);
                           }
                           if (result?.message) {
                             toast.success(result.message);
@@ -929,17 +883,11 @@ const AllStamp = () => {
         </table>
 
         {filteredStamps?.length === 0 && (
-          <div className="p-4 text-center text-gray-500">
-            No stamps found matching your search criteria
-          </div>
+          <div className="p-4 text-center text-gray-500">No stamps found matching your search criteria</div>
         )}
-
-        <p className="text-xs text-gray-400 p-3 md:hidden">
-          Scroll sideways to view full table on mobile →
-        </p>
+        <p className="text-xs text-gray-400 p-3 md:hidden">Scroll sideways to view full table on mobile →</p>
       </div>
 
-      {/* Pagination at the bottom */}
       <PaginationControls />
     </div>
   );
