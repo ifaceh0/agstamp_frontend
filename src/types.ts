@@ -23,11 +23,12 @@ export interface Stamp {
   stock: number;
   active: boolean;
   images: { publicId: string; publicUrl: string }[];
-  categories?: (Category[] | String)[]; // A single object, just like in your API
+  categories?: Category[] | String; // A single object, just like in your API
   beginDate?: string;
   endDate?: string;
-  createdAt: string;
-  updatedAt: string;
+   // 👇 ADD '?' TO MAKE THESE OPTIONAL
+  createdAt?: string; 
+  updatedAt?: string;
 }
 
 // --- FORM STATE TYPE ---

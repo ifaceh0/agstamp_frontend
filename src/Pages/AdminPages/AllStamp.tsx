@@ -533,17 +533,9 @@ const AllStamp = () => {
 
   useEffect(() => {
     if (data1) {
-      // Map categories to array if needed
-      const mappedStamps = data1.stamps.map((stamp: any) => ({
-        ...stamp,
-        categories: Array.isArray(stamp.categories)
-          ? stamp.categories
-          : typeof stamp.categories === "string"
-            ? [stamp.categories]
-            : [],
-      }));
-      setStamps(mappedStamps);
-      setFilteredStamps(mappedStamps);
+      console.log("API STAMPS DATA:", data1.stamps);
+      setStamps(data1.stamps);
+      setFilteredStamps(data1.stamps);
       setCurrentPage(1);
     }
   }, [data1?.stamps]);
@@ -855,15 +847,7 @@ const AllStamp = () => {
                         try {
                           const result = await deleteStamp(stamp._id).unwrap();
                           if (result?.stamps) {
-                            const mappedStamps = result.stamps.map((stamp: any) => ({
-                              ...stamp,
-                              categories: Array.isArray(stamp.categories)
-                                ? stamp.categories
-                                : typeof stamp.categories === "string"
-                                  ? [stamp.categories]
-                                  : [],
-                            }));
-                            setStamps(mappedStamps);
+                            setStamps(result.stamps);
                           }
                           if (result?.message) {
                             toast.success(result.message);
