@@ -548,8 +548,8 @@ const AllStamp = () => {
 
       // Handle special cases
       if (sortConfig.key === "categories") {
-        valueA = a.categories || "";
-        valueB = b.categories || "";
+        valueA = a.categories?.name || "";
+        valueB = b.categories?.name || "";
       } else {
         valueA = a[sortConfig.key as keyof Stamp];
         valueB = b[sortConfig.key as keyof Stamp];
@@ -577,12 +577,12 @@ const AllStamp = () => {
 
   useEffect(() => {
     if (stamps) {
-      const filtered = stamps.filter(
-        (stamp) =>
+        const filtered = stamps.filter(
+          (stamp) =>
           stamp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           stamp.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (stamp.categories && stamp.categories.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
+          (stamp.categories?.name && stamp.categories.name.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
       
       // Apply sorting to filtered results
       const sorted = applySort(filtered);
@@ -846,7 +846,7 @@ const AllStamp = () => {
                   {stamp.name.length > 10 ? stamp.name.substring(0, 9) + "..." : stamp.name}
                 </td>
                 <td className="px-4 py-3 whitespace-nowrap">
-                  {stamp.categories || "—"}
+                  {stamp.categories?.name || "—"}
                 </td>
                 <td className="px-4 py-3 max-w-xs line-clamp-2 text-gray-500">
                   {stamp.description.length > 10 ? stamp.description.substring(0, 9) + "..." : stamp.description}
