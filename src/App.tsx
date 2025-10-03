@@ -30,6 +30,7 @@ import DashBoard from "./Pages/AdminPages/DashBoard";
 import AllOrder from "./Pages/UserPages/AllOrder";
 import AllUserOrder from "./Pages/AdminPages/AllUserOrder";
 import FeedBack from "./Pages/AdminPages/FeedBack";
+import CategoryManager from "./Components/Admin/CategoryManager";
 
 
 const App = () => {
@@ -79,6 +80,7 @@ const App = () => {
             <Route path="dashboard" element={<DashBoard/>} />
             <Route path="addstamp" element={<AddStamp/>}/>
             <Route path="stamps" element={<AllStamp/>}/>
+            <Route path="/admin/category-manager" element={<CategoryManager />} />
             <Route path="carousels" element={<AllCarousel/>}/>
             <Route path="updatewave" element={<PhotoUploadForm/>}/>
             <Route path="addcarousel" element={<AddCarousel/>}/>

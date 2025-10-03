@@ -1,4 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { Category } from '../../types';
 
 export const adminApi = createApi({
   reducerPath: 'adminApi',
@@ -57,6 +58,30 @@ export const adminApi = createApi({
     getAllFeedback: build.query<ContactData,void>({
       query: () => `api/v1/admin/all/feedback`,
     }),
+    // 🔹 CATEGORY ENDPOINTS
+    getAllCategories: build.query<Category[], void>({
+      query: () => `api/v1/admin/getcategories`,
+    }),
+    addCategory: build.mutation<{_id:string, name:string}, {name:string}>({
+      query: (data) => ({
+        url: `/api/v1/admin/addcategories`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    updateCategory: build.mutation<{_id:string, name:string}, {id:string, name:string}>({
+      query: ({ id, name }) => ({
+        url: `/api/v1/admin/updatecategory/${id}`,
+        method: "PUT",
+        body: { name },
+      }),
+    }),
+    deleteCategory: build.mutation<{ success:boolean }, string>({
+      query: (id) => ({
+        url: `/api/v1/admin/deletecategory/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -71,7 +96,12 @@ export const {
   useGetAllUsersOrderQuery,
   useUpdateOrderMutation,
   useGetDashBoardDataQuery,
-  useGetAllFeedbackQuery
+  useGetAllFeedbackQuery,
+   // 🔹 Category hooks
+  useGetAllCategoriesQuery,
+  useAddCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
 } = adminApi;
 
 export default adminApi;
