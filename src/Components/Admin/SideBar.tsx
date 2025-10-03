@@ -8,6 +8,7 @@ import {
   FiSettings,
   FiMenu,
   FiX,
+  FiFolder,
 } from 'react-icons/fi';
 
 const SideBar: React.FC = () => {
@@ -94,7 +95,7 @@ const SideBar: React.FC = () => {
               Stamp Management
             </h2>
 
-            {/* Add Dropdown */}
+            {/* Stamp Dropdown */}
             <div className="mb-2">
               <div className="flex items-center p-3 rounded-lg hover:bg-gray-700 cursor-pointer group relative">
                 <FiPlus className="mr-3" />
@@ -149,6 +150,20 @@ const SideBar: React.FC = () => {
               <FiList className="mr-3" />
               All Stamps
             </NavLink>
+
+            <NavLink
+              to="/admin/category-manager"
+              onClick={() => isMobile && setIsOpen(false)}
+              className={({ isActive }) =>
+                `flex items-center p-3 rounded-lg mb-1 transition-colors ${
+                  isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+                }`
+              }
+            >
+              <FiFolder className="mr-3" />
+              Category Manager
+            </NavLink>
+
             <NavLink
               to="/admin/carousels"
               onClick={() => isMobile && setIsOpen(false)}
@@ -161,6 +176,7 @@ const SideBar: React.FC = () => {
               <FiList className="mr-3" />
               All Carousel
             </NavLink>
+
             <NavLink
               to="/admin/all/orders"
               onClick={() => isMobile && setIsOpen(false)}
@@ -173,18 +189,6 @@ const SideBar: React.FC = () => {
               <FiList className="mr-3" />
               All Orders
             </NavLink>
-            {/* <NavLink
-              to="/admin/all/feedbacks"
-              onClick={() => isMobile && setIsOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center p-3 rounded-lg mb-1 transition-colors ${
-                  isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
-                }`
-              }
-            >
-              <FiList className="mr-3" />
-              All Messages
-            </NavLink> */}
           </div>
 
           <div className="mb-6">
@@ -231,6 +235,241 @@ const SideBar: React.FC = () => {
 };
 
 export default SideBar;
+
+//old code
+// import { useState, useEffect } from 'react';
+// import { NavLink, useNavigate } from 'react-router-dom';
+// import {
+//   FiPlus,
+//   FiList,
+//   FiHome,
+//   FiUsers,
+//   FiSettings,
+//   FiMenu,
+//   FiX,
+// } from 'react-icons/fi';
+
+// const SideBar: React.FC = () => {
+//   const navigate = useNavigate();
+//   const [isOpen, setIsOpen] = useState<boolean>(false);
+//   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 1024);
+
+//   useEffect(() => {
+//     const handleResize = () => {
+//       const isNowMobile = window.innerWidth < 1024;
+//       setIsMobile(isNowMobile);
+//       setIsOpen(!isNowMobile);
+//     };
+
+//     window.addEventListener('resize', handleResize);
+//     handleResize();
+
+//     return () => window.removeEventListener('resize', handleResize);
+//   }, []);
+
+//   useEffect(() => {
+//     const handleClickOutside = (event: MouseEvent) => {
+//       const sidebar = document.getElementById('sidebar');
+//       const burgerButton = document.getElementById('burger-button');
+//       if (
+//         isOpen &&
+//         sidebar &&
+//         !sidebar.contains(event.target as Node) &&
+//         burgerButton &&
+//         !burgerButton.contains(event.target as Node)
+//       ) {
+//         setIsOpen(false);
+//       }
+//     };
+
+//     document.addEventListener('mousedown', handleClickOutside);
+//     return () => document.removeEventListener('mousedown', handleClickOutside);
+//   }, [isOpen]);
+
+//   return (
+//     <>
+//       {isMobile && (
+//         <button
+//           id="burger-button"
+//           onClick={() => setIsOpen(!isOpen)}
+//           className="fixed top-4 left-4 z-40 p-2 rounded-md bg-gray-800 text-white lg:hidden"
+//         >
+//           {isOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+//         </button>
+//       )}
+
+//       <div
+//         id="sidebar"
+//         className={`fixed min-w-[260px] lg:relative z-30 w-64 min-h-screen bg-gray-800 text-white overflow-y-auto transition-all duration-300 ease-in-out
+//           ${isOpen ? 'left-0' : '-left-72'} lg:left-0`}
+//       >
+//         <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+//           <h1 className="text-xl font-bold">Admin Dashboard</h1>
+//           <button
+//             onClick={() => navigate('/')}
+//             className="p-2 rounded-full hover:bg-gray-700 transition-colors"
+//             aria-label="Back to home"
+//           >
+//             <FiHome className="text-lg" />
+//           </button>
+//         </div>
+
+//         <nav className="p-4">
+//           <NavLink
+//             to="/admin/dashboard"
+//             onClick={() => isMobile && setIsOpen(false)}
+//             className={({ isActive }) =>
+//               `flex items-center p-3 rounded-lg mb-2 transition-colors ${
+//                 isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//               }`
+//             }
+//           >
+//             <FiHome className="mr-3" />
+//             Dashboard
+//           </NavLink>
+
+//           <div className="mb-6">
+//             <h2 className="text-sm uppercase font-semibold text-gray-400 mb-2 px-3">
+//               Stamp Management
+//             </h2>
+
+//             {/* Add Dropdown */}
+//             <div className="mb-2">
+//               <div className="flex items-center p-3 rounded-lg hover:bg-gray-700 cursor-pointer group relative">
+//                 <FiPlus className="mr-3" />
+//                 <span className="group-hover:text-white font-medium">Stamp</span>
+//               </div>
+//               <div className="ml-8 mt-1 space-y-1">
+//                 <NavLink
+//                   to="/admin/addstamp"
+//                   onClick={() => isMobile && setIsOpen(false)}
+//                   className={({ isActive }) =>
+//                     `block p-2 rounded-md transition-colors text-sm ${
+//                       isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//                     }`
+//                   }
+//                 >
+//                   New Stamp
+//                 </NavLink>
+//                 <NavLink
+//                   to="/admin/updatewave"
+//                   onClick={() => isMobile && setIsOpen(false)}
+//                   className={({ isActive }) =>
+//                     `block p-2 rounded-md transition-colors text-sm ${
+//                       isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//                     }`
+//                   }
+//                 >
+//                   Banner
+//                 </NavLink>
+//                 <NavLink
+//                   to="/admin/addcarousel"
+//                   onClick={() => isMobile && setIsOpen(false)}
+//                   className={({ isActive }) =>
+//                     `block p-2 rounded-md transition-colors text-sm ${
+//                       isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//                     }`
+//                   }
+//                 >
+//                   Carousel
+//                 </NavLink>
+//               </div>
+//             </div>
+
+//             <NavLink
+//               to="/admin/stamps"
+//               onClick={() => isMobile && setIsOpen(false)}
+//               className={({ isActive }) =>
+//                 `flex items-center p-3 rounded-lg mb-1 transition-colors ${
+//                   isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//                 }`
+//               }
+//             >
+//               <FiList className="mr-3" />
+//               All Stamps
+//             </NavLink>
+//             <NavLink
+//               to="/admin/carousels"
+//               onClick={() => isMobile && setIsOpen(false)}
+//               className={({ isActive }) =>
+//                 `flex items-center p-3 rounded-lg mb-1 transition-colors ${
+//                   isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//                 }`
+//               }
+//             >
+//               <FiList className="mr-3" />
+//               All Carousel
+//             </NavLink>
+//             <NavLink
+//               to="/admin/all/orders"
+//               onClick={() => isMobile && setIsOpen(false)}
+//               className={({ isActive }) =>
+//                 `flex items-center p-3 rounded-lg mb-1 transition-colors ${
+//                   isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//                 }`
+//               }
+//             >
+//               <FiList className="mr-3" />
+//               All Orders
+//             </NavLink>
+//             {/* <NavLink
+//               to="/admin/all/feedbacks"
+//               onClick={() => isMobile && setIsOpen(false)}
+//               className={({ isActive }) =>
+//                 `flex items-center p-3 rounded-lg mb-1 transition-colors ${
+//                   isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//                 }`
+//               }
+//             >
+//               <FiList className="mr-3" />
+//               All Messages
+//             </NavLink> */}
+//           </div>
+
+//           <div className="mb-6">
+//             <h2 className="text-sm uppercase font-semibold text-gray-400 mb-2 px-3">
+//               User Management
+//             </h2>
+//             <NavLink
+//               to="/admin/EmailCampaign"
+//               onClick={() => isMobile && setIsOpen(false)}
+//               className={({ isActive }) =>
+//                 `flex items-center p-3 rounded-lg mb-1 transition-colors ${
+//                   isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//                 }`
+//               }
+//             >
+//               <FiUsers className="mr-3" />
+//               Manage Users
+//             </NavLink>
+//           </div>
+
+//           <NavLink
+//             to="/admin/settings"
+//             onClick={() => isMobile && setIsOpen(false)}
+//             className={({ isActive }) =>
+//               `flex items-center p-3 rounded-lg transition-colors ${
+//                 isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+//               }`
+//             }
+//           >
+//             <FiSettings className="mr-3" />
+//             Settings
+//           </NavLink>
+//         </nav>
+//       </div>
+
+//       {isMobile && isOpen && (
+//         <div
+//           className="fixed inset-0 bg-[rgba(0,0,0,0.1)] bg-opacity-50 z-20 lg:hidden"
+//           onClick={() => setIsOpen(false)}
+//         />
+//       )}
+//     </>
+//   );
+// };
+
+// export default SideBar;
 
 
 // "use client";
