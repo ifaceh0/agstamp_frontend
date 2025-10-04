@@ -670,7 +670,7 @@ const ProductDetail: React.FC = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleAddToCart}
-                  disabled={stamp.stock <= 0 || stamp.stock == quantity}
+                  disabled={stamp.stock <= 0}
                   className={`w-full py-3 rounded-xl font-semibold flex items-center justify-center transition-all
                     ${
                       stamp.stock > 0

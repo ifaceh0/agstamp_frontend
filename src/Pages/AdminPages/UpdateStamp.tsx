@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import { useParams, useNavigate } from "react-router-dom";
 import FullscreenLoader from "../../Components/Loader/FullscreenLoader";
+import { useGetAllCategoriesQuery } from "../../Redux/Api/adminApi"; // ✅ import API hook
 
 interface StampForm {
   _id?: string;
@@ -19,6 +20,7 @@ interface StampForm {
 const UpdateStamp: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { data: categories = [] } = useGetAllCategoriesQuery(); // ✅ fetch categories
   const [form, setForm] = useState<StampForm>({
     name: "",
     description: "",
@@ -30,7 +32,7 @@ const UpdateStamp: React.FC = () => {
     category: "", // Default value for category
   });
 
-  const [categories, setCategories] = useState<string[]>([]); // State for categories
+  //const [categories, setCategories] = useState<string[]>([]); // State for categories
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<{ publicUrl: string; publicId: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,13 +48,6 @@ const UpdateStamp: React.FC = () => {
         ]);
 
         const stamp = stampRes.data.stamp;
-        const categories = [
-          "Russia 1858-1918",
-          "Russia 1919-1941",
-          "Russia 1941-2000",
-          "Russia Airmails",
-          "Russia Semi-postal",
-        ] // Assuming an array of category names
 
         const initialData = {
           name: stamp.name,
@@ -62,11 +57,11 @@ const UpdateStamp: React.FC = () => {
           active: stamp.active,
           beginDate: stamp.beginDate?.slice(0, 10) || "", // Format to yyyy-mm-dd
           images: stamp.images,
-          category: stamp.category || categories[0], // Default to first category if none provided
+          category: stamp.categories?.[0] || "", // ✅ use categoryId (first if multiple)
         };
 
         setForm(initialData);
-        setCategories(categories); // Set categories
+        //setCategories(categories); // Set categories
         setInitialFormData(initialData);
         setExistingImages(stamp.images);
         setPreviewImages(stamp.images.map((img: any) => img.publicUrl));
@@ -189,7 +184,10 @@ const UpdateStamp: React.FC = () => {
       if (form.stock !== initialFormData?.stock) formData.append("stock", form.stock.toString());
       if (form.active !== initialFormData?.active) formData.append("active", form.active.toString());
       if (form.beginDate !== initialFormData?.beginDate) formData.append("beginDate", form.beginDate);
-      if (form.category !== initialFormData?.category) formData.append("category", form.category);
+      if (form.category !== initialFormData?.category) {
+  formData.append("categories", JSON.stringify([form.category]));
+}
+
 
       const newImageFiles = form.images.filter(img => img instanceof File) as File[];
       newImageFiles.forEach(file => {
@@ -310,9 +308,10 @@ const UpdateStamp: React.FC = () => {
             className="w-full px-4 py-2 border rounded-md shadow-sm"
             required
           >
-            {categories.map((category, index) => (
-              <option key={index} value={category}>
-                {category}
+            <option value="">Select a category</option>
+            {categories.map((cat: any) => (
+              <option key={cat._id} value={cat._id}>
+                {cat.name}
               </option>
             ))}
           </select>
