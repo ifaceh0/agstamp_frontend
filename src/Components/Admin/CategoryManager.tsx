@@ -6,6 +6,7 @@ import {
   useDeleteCategoryMutation,
 } from "../../Redux/Api/adminApi";
 import { Category } from "../../types";
+import { toast } from "react-toastify";
 
 const CategoryManager = () => {
   const { data: categories, refetch } = useGetAllCategoriesQuery();
@@ -17,9 +18,12 @@ const CategoryManager = () => {
   const [editId, setEditId] = useState<string | null>(null);
   const [editName, setEditName] = useState<string>("");
 
+  // Track delete confirmation state
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   // ➤ Add new category
   const handleAdd = async () => {
-    if (!newCategoryName.trim()) return alert("Category name cannot be empty");
+    if (!newCategoryName.trim()) return toast.error("Category name cannot be empty");
     await addCategory({ name: newCategoryName });
     setNewCategoryName("");
     refetch();
@@ -33,7 +37,7 @@ const CategoryManager = () => {
 
   // ➤ Save edited category
   const handleUpdate = async () => {
-    if (!editName.trim()) return alert("Category name cannot be empty");
+    if (!editName.trim()) return toast.error("Category name cannot be empty");
     if (!editId) return;
     await updateCategory({ id: editId, name: editName });
     setEditId(null);
@@ -43,9 +47,14 @@ const CategoryManager = () => {
 
   // ➤ Delete category
   const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this category?")) {
-      await deleteCategory(id);
+    try {
+      await deleteCategory(id).unwrap();
+      toast.success("Category deleted successfully");
       refetch();
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Cannot delete category with existing stamps");
+    } finally {
+      setDeleteConfirmId(null);
     }
   };
 
@@ -102,18 +111,37 @@ const CategoryManager = () => {
               <>
                 <span>{category.name}</span>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEdit(category)}
-                    className="bg-blue-500 text-white px-2 py-1 rounded"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(category._id)}
-                    className="bg-red-500 text-white px-2 py-1 rounded"
-                  >
-                    Delete
-                  </button>
+                  {deleteConfirmId === category._id ? (
+                    <>
+                      <button
+                        onClick={() => handleDelete(category._id)}
+                        className="bg-red-600 text-white px-2 py-1 rounded"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="bg-gray-400 text-white px-2 py-1 rounded"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleEdit(category)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => setDeleteConfirmId(category._id)}
+                        className="bg-red-500 text-white px-2 py-1 rounded"
+                      >
+                        Delete
+                      </button>
+                    </>
+                  )}
                 </div>
               </>
             )}
