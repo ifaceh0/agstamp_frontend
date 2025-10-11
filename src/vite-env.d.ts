@@ -137,6 +137,7 @@ interface CartData {
   user: string;
   items: CartItem[];
   totalPrice: number;
+  selectedCountry: string;
 }
 
 

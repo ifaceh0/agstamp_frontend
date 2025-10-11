@@ -1,4 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+// Define the correct interface for the shipping rates response
+interface ShippingRatesResponse {
+  success: boolean;
+  usPrice: number;
+  internationalPrice: number;
+}
 // Define a service using a base URL and expected endpoint
 console.log("import.meta.env.VITE_BACKEND_URL:",import.meta.env.VITE_BACKEND_URL);
 export const userApi = createApi({
@@ -75,8 +81,11 @@ export const userApi = createApi({
     getAllCategories: build.query<{_id:string,name:string}[],void>({
       query: () => "/api/v1/user/allcategories",
     }),
+    getShippingRates: build.query<ShippingRatesResponse, void>({
+        query: () => "/api/v1/user/shipping-prices",
+    }),
   }),
 })
 
-export const { useUserRegisterMutation,useUserLoginMutation,useUserInfoQuery,useUserAllStampsQuery,useGetWaveImgQuery,useAddToCartMutation,useUserCartItemQuery,useUpdateCartItemMutation,useRemoveCartItemMutation,useRemoveAllCartItemMutation,useSubscribeMailServiceMutation,useUserOrderQuery,useContactusMutation,useGetAllCategoriesQuery } = userApi;
+export const { useUserRegisterMutation,useUserLoginMutation,useUserInfoQuery,useUserAllStampsQuery,useGetWaveImgQuery,useAddToCartMutation,useUserCartItemQuery,useUpdateCartItemMutation,useRemoveCartItemMutation,useRemoveAllCartItemMutation,useSubscribeMailServiceMutation,useUserOrderQuery,useContactusMutation,useGetAllCategoriesQuery,useGetShippingRatesQuery } = userApi;
 

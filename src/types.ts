@@ -43,3 +43,24 @@ export interface StampForm {
   beginDate: string;
   categories: Category[]; // An array, because the form can handle multiple
 }
+
+// types/cartTypes.ts
+export interface Rate {
+  _id: string;
+  type: string;
+  price: number;
+  currency: string;
+}
+
+export interface CartItem {
+  id: string;
+  name: string;
+  quantity: number;
+  rates: Rate[];
+}
+
+export interface CartState {
+  items: CartItem[];
+  ShippingType: string;
+  selectedCountry: string;
+}
