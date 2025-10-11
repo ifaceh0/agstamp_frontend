@@ -229,9 +229,10 @@
 // Note: The above code assumes you have a backend API endpoint `/api/create-checkout-session`
 // that handles the creation of the Stripe checkout session. You will need to implement this endpoint in your backend.
 // The `cartTotal` variable is a placeholder and should be replaced with the actual cart total from your application's state or context.
+// 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useLocation } from "react-router-dom"
 import { Lock } from "lucide-react"
 import { useCreateCheckoutSessionMutation } from "../../services/stripe"
 import { useSelector } from "react-redux"
@@ -243,8 +244,8 @@ const CheckoutPage: React.FC = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([])
   const [cartTotal, setCartTotal] = useState(0)
 
-  const [createCheckoutSession] = useCreateCheckoutSessionMutation();
-   const { cart } = useSelector<RootState,CartState>((state) => state.cartSlice);
+  const [createCheckoutSession] = useCreateCheckoutSessionMutation()
+  const { cart } = useSelector<RootState, CartState>((state) => state.cartSlice)
 
   const [shippingAddress, setShippingAddress] = useState({
     name: "",
@@ -257,15 +258,20 @@ const CheckoutPage: React.FC = () => {
     zipCode: "",
   })
 
-  // Load cart items from localStorage or use dummy products for testing
-  useEffect(() => {
-    const items = cart?.items!;
-    setCartItems(items);
+  const location = useLocation()
+  const { shippingType, shippingRate } = location.state || {}
 
-    // Calculate cart total
-    const total = items.reduce((sum: number, item: CartItem) => sum + item.stamp.price * item.quantity, 0)
-    setCartTotal(total)
-  }, [cart]);
+  useEffect(() => {
+    const items = cart?.items || []
+    setCartItems(items)
+
+    // Include shipping rate in total
+    const total = items.reduce(
+      (sum: number, item: CartItem) => sum + item.stamp.price * item.quantity,
+      0
+    )
+    setCartTotal(total + (shippingRate || 0))
+  }, [cart, shippingRate])
 
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setShippingAddress({ ...shippingAddress, [e.target.id]: e.target.value })
@@ -275,7 +281,6 @@ const CheckoutPage: React.FC = () => {
     try {
       setIsLoading(true)
 
-      // Validate form
       if (
         !shippingAddress.name ||
         !shippingAddress.email ||
@@ -290,34 +295,9 @@ const CheckoutPage: React.FC = () => {
         return
       }
 
-      // Create checkout session using RTK Query mutation
-      // const response = await createCheckoutSession({
-      //   items: cartItems.map((item) => ({
-      //     name: item.name,
-      //     description: item.description || "",
-      //     price: item.price,
-      //     quantity: item.quantity,
-      //     images: item.images || [],
-      //   })),
-      //   customerEmail: shippingAddress.email,
-      //   customerName: shippingAddress.name,
-      //   shippingAddress: {
-      //     line1: shippingAddress.addressLine1,
-      //     line2: shippingAddress.addressLine2 || "",
-      //     city: shippingAddress.city,
-      //     state: shippingAddress.state,
-      //     postal_code: shippingAddress.zipCode,
-      //     country: "US", // Default to US, can be made dynamic
-      //   },
-      //   metadata: {
-      //     phone: shippingAddress.phone,
-      //   },
-      // }).unwrap()
-
-
       const response = await createCheckoutSession({
         items: cartItems.map((item) => ({
-          mongoID:item.stamp._id,
+          mongoID: item.stamp._id,
           name: item.stamp.name,
           description: item.stamp.description || "",
           price: item.stamp.price,
@@ -333,19 +313,22 @@ const CheckoutPage: React.FC = () => {
           city: shippingAddress.city,
           state: shippingAddress.state,
           postal_code: shippingAddress.zipCode,
-          country: "US", // Default to US, can be made dynamic
+          country: "US",
         },
         metadata: {
-          products:JSON.stringify(cartItems.map((item) => ({
-          mongoID:item.stamp._id,
-          quantity: item.quantity,
-        }))),
-        }
-      }).unwrap();
-  
+          products: JSON.stringify(
+            cartItems.map((item) => ({
+              mongoID: item.stamp._id,
+              quantity: item.quantity,
+            }))
+          ),
+          shippingType: shippingType || "domestic",
+          shippingRate: shippingRate?.toString() || "0",
+        },
+        shippingAmount: shippingRate || 0,
+      }).unwrap()
 
       if (response.success && response.url) {
-        // Redirect to Stripe Checkout
         window.location.href = response.url
       } else {
         throw new Error(response.message || "Failed to create checkout session")
@@ -358,7 +341,6 @@ const CheckoutPage: React.FC = () => {
     }
   }
 
-  // For auto-filling form (demo purposes)
   const handleAutoFill = () => {
     setShippingAddress({
       name: "John Doe",
@@ -372,10 +354,8 @@ const CheckoutPage: React.FC = () => {
     })
   }
 
-  // Check if there are products in the cart
   const hasProducts = cartItems.length > 0
 
-  // If no products, show empty cart message
   if (!hasProducts) {
     return (
       <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 flex flex-col items-center justify-center">
@@ -425,10 +405,18 @@ const CheckoutPage: React.FC = () => {
                       <p className="text-gray-500">Qty: {item.quantity}</p>
                     </div>
                   </div>
-                  <p className="font-medium text-gray-900">${(item.stamp.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-medium text-gray-900">
+                    ${(item.stamp.price * item.quantity).toFixed(2)}
+                  </p>
                 </div>
               ))}
-              <div className="border-t pt-4 mt-4">
+              <div className="border-t pt-4 mt-4 space-y-2">
+                {/* Shipping Line */}
+                <div className="flex justify-between text-gray-700">
+                  <p>Shipping ({shippingType || "domestic"})</p>
+                  <p>${(shippingRate || 0).toFixed(2)}</p>
+                </div>
+
                 <div className="flex justify-between font-bold text-lg">
                   <p>Total</p>
                   <p>${cartTotal.toFixed(2)}</p>
@@ -441,14 +429,11 @@ const CheckoutPage: React.FC = () => {
           <div className="mb-10">
             <div className="flex justify-between items-center">
               <h2 className="text-xl font-semibold text-gray-900 mb-6 border-b pb-4">Shipping Address</h2>
-              <button
-                onClick={handleAutoFill}
-                className="text-sm text-indigo-600 hover:text-indigo-800"
-              >
+              <button onClick={handleAutoFill} className="text-sm text-indigo-600 hover:text-indigo-800">
                 Auto-fill for demo
               </button>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
               <div className="sm:col-span-2">
                 <label htmlFor="name" className="block text-sm font-medium text-gray-700">

@@ -31,6 +31,8 @@ import AllOrder from "./Pages/UserPages/AllOrder";
 import AllUserOrder from "./Pages/AdminPages/AllUserOrder";
 import FeedBack from "./Pages/AdminPages/FeedBack";
 import CategoryManager from "./Components/Admin/CategoryManager";
+import ShippingRateManager from "./Components/Admin/ShippingRateManager";
+
 
 
 const App = () => {
@@ -81,6 +83,8 @@ const App = () => {
             <Route path="addstamp" element={<AddStamp/>}/>
             <Route path="stamps" element={<AllStamp/>}/>
             <Route path="/admin/category-manager" element={<CategoryManager />} />
+            <Route path="/admin/shipping-rates" element={<ShippingRateManager />} />
+            <Route path="all/orders" element={<AllUserOrder/>}/>
             <Route path="carousels" element={<AllCarousel/>}/>
             <Route path="updatewave" element={<PhotoUploadForm/>}/>
             <Route path="addcarousel" element={<AddCarousel/>}/>

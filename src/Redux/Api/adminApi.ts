@@ -82,6 +82,15 @@ export const adminApi = createApi({
         method: "DELETE",
       }),
     }),
+    getShippingRates: build.query<{ success: boolean; rates: { type: string; price: number }[] }, void>({
+      query: () => `/api/v1/admin/shipping-rates`,
+    }),
+    updateShippingRate: build.mutation<{ success: boolean; message: string }, { type: string; price: number }>({
+      query: () => ({
+        url: `/api/v1/admin/shipping-rates`,
+        method: "PATCH",
+      }),
+    }),
   }),
 });
 
@@ -102,6 +111,8 @@ export const {
   useAddCategoryMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
+  useGetShippingRatesQuery,
+  useUpdateShippingRateMutation,
 } = adminApi;
 
 export default adminApi;

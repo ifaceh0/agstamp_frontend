@@ -20,10 +20,15 @@ const cartSlice = createSlice({
         },
         setCartLording:(state,action:PayloadAction<boolean>)=>{
             state.loading = action.payload;
-        }
+        },
+        updateSelectedCountry: (state, action: PayloadAction<string>) => {
+            if (state.cart) {
+                state.cart.selectedCountry = action.payload;
+            }
+        },
     },
 });
 
 // Export actions & reducer
-export const {addToCartAction,setCartLording} = cartSlice.actions;
+export const {addToCartAction,setCartLording,updateSelectedCountry} = cartSlice.actions;//,updateSelectedCountry
 export default cartSlice;

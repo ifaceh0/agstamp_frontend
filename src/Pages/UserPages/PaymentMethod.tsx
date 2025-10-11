@@ -128,6 +128,7 @@ const handlePayment = async () => {
         })),
         customerEmail: user?.email,
         customerName: `${user?.firstname} ${user?.lastname}`,
+        selectedCountry: cart?.selectedCountry || "US", // ✅ added line
         shippingType:ShippingType,
         metadata: {
           products:JSON.stringify(cart?.items.map((item) => ({

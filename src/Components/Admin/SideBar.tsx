@@ -191,6 +191,19 @@ const SideBar: React.FC = () => {
             </NavLink>
           </div>
 
+          <NavLink
+            to="/admin/shipping-rates"
+            onClick={() => isMobile && setIsOpen(false)}
+            className={({ isActive }) =>`flex items-center p-3 rounded-lg mb-1 transition-colors ${
+              isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+              }`
+            }
+          > 
+          <FiList className="mr-3" />
+            Shipping Rate Manager
+          </NavLink>
+
+
           <div className="mb-6">
             <h2 className="text-sm uppercase font-semibold text-gray-400 mb-2 px-3">
               User Management
