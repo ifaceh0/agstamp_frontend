@@ -234,6 +234,18 @@ const SideBar: React.FC = () => {
             <FiSettings className="mr-3" />
             Settings
           </NavLink>
+          <NavLink
+            to="/admin/countries"
+            onClick={() => isMobile && setIsOpen(false)}
+            className={({ isActive }) =>
+              `flex items-center p-3 rounded-lg transition-colors ${
+                isActive ? 'bg-blue-600' : 'hover:bg-gray-700'
+              }`
+            }
+          >
+            <FiSettings className="mr-3" />
+            Countries
+          </NavLink>  
         </nav>
       </div>
 

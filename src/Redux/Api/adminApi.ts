@@ -91,6 +91,23 @@ export const adminApi = createApi({
         method: "PATCH",
       }),
     }),
+    // 🔹 COUNTRY ENDPOINTS
+    getAllCountries: build.query<{ success: boolean; countries: { _id: string; name: string; code: string }[] }, void>({
+      query: () => `/api/v1/admin/countries`,
+    }),
+    addCountry: build.mutation<{ success: boolean; country: { _id: string; name: string; code: string } }, { name: string; code: string }>({
+      query: (data) => ({
+        url: `/api/v1/admin/countries`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    deleteCountry: build.mutation<{ success: boolean; message: string }, string>({
+      query: (id) => ({
+        url: `/api/v1/admin/countries/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -113,6 +130,10 @@ export const {
   useDeleteCategoryMutation,
   useGetShippingRatesQuery,
   useUpdateShippingRateMutation,
+  // 🔹 Country hooks
+  useGetAllCountriesQuery,
+  useAddCountryMutation,
+  useDeleteCountryMutation,
 } = adminApi;
 
 export default adminApi;
