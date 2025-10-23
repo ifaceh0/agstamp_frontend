@@ -358,7 +358,7 @@ const CountriesAdmin: React.FC = () => {
   const [code, setCode] = useState("");
   
   const [showEditModal, setShowEditModal] = useState(false);
-  const [editingCountry, setEditingCountry] = useState<any>(null);
+  const [ setEditingCountry] = useState<any>(null); //editingCountry,
   const [editName, setEditName] = useState("");
   const [editCode, setEditCode] = useState("");
 
@@ -488,7 +488,7 @@ const CountriesAdmin: React.FC = () => {
                             toast.error(err?.data?.message || "Failed");
                           }
                         }}
-                       // disabled={isUpdating || isDeleting}
+                       disabled={isDeleting} //isUpdating || 
                         className="inline-flex items-center p-2 text-red-600 hover:text-red-900 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                         title="Delete"
                       >
