@@ -259,7 +259,7 @@ const CheckoutPage: React.FC = () => {
   })
 
   const location = useLocation()
-  const { shippingType, shippingRate } = location.state || {}
+  const { shippingType, shippingRate, country } = location.state || {}
 
   useEffect(() => {
     const items = cart?.items || []
@@ -299,6 +299,7 @@ const CheckoutPage: React.FC = () => {
         items: cartItems.map((item) => ({
           mongoID: item.stamp._id,
           name: item.stamp.name,
+          selectedCountry: country || "US",
           description: item.stamp.description || "",
           price: item.stamp.price,
           quantity: item.quantity,
@@ -306,15 +307,15 @@ const CheckoutPage: React.FC = () => {
         })),
         customerEmail: shippingAddress.email,
         customerName: shippingAddress.name,
-        shippingAddress: {
-          name: shippingAddress.name,
-          line1: shippingAddress.addressLine1,
-          line2: shippingAddress.addressLine2 || "",
-          city: shippingAddress.city,
-          state: shippingAddress.state,
-          postal_code: shippingAddress.zipCode,
-          country: "US",
-        },
+        // shippingAddress: {
+        //   name: shippingAddress.name,
+        //   line1: shippingAddress.addressLine1,
+        //   line2: shippingAddress.addressLine2 || "",
+        //   city: shippingAddress.city,
+        //   state: shippingAddress.state,
+        //   postal_code: shippingAddress.zipCode,
+        //   country: "US",
+        // },
         metadata: {
           products: JSON.stringify(
             cartItems.map((item) => ({
@@ -324,6 +325,7 @@ const CheckoutPage: React.FC = () => {
           ),
           shippingType: shippingType || "domestic",
           shippingRate: shippingRate?.toString() || "0",
+          selectedCountry: country || "US",
         },
         shippingAmount: shippingRate || 0,
       }).unwrap()

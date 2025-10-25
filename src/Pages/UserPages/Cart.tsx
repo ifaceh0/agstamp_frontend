@@ -487,6 +487,7 @@ import {
 import { addToCartAction, updateSelectedCountry } from "../../Redux/Reducer/cartSlice";
 import { toast } from "react-toastify";
 import FullscreenLoader from "../../Components/Loader/FullscreenLoader";
+import { useGetAllCountriesQuery } from "../../Redux/Api/adminApi";
 
 const Cart: React.FC = () => {
   const navigate = useNavigate();
@@ -500,9 +501,11 @@ const Cart: React.FC = () => {
 
   const { cart } = useSelector((state: RootState) => state.cartSlice as any);
 
+
   // Default selections
   const [selectedShipping, setSelectedShipping] = useState<string>("domestic");
   const [selectedCountry, setSelectedCountry] = useState<string>("US");
+  const { data: countriesData, isLoading: countriesLoading } = useGetAllCountriesQuery();
 
    // 👇 CREATE A HANDLER TO UPDATE BOTH LOCAL AND GLOBAL STATE
   const handleCountryChange = (countryCode: string) => {
@@ -532,6 +535,12 @@ const Cart: React.FC = () => {
       return;
     }
 
+    // ✅ Add validation for country selection
+  if (!selectedCountry) {
+    toast.error("Please select a country!");
+    return;
+  }
+  
     navigate("/paymentmethod", {
       state: {
         cartId: cart._id,
@@ -650,24 +659,35 @@ const Cart: React.FC = () => {
             </div>
           ))}
 
-          {/* Country Selection */}
+          {/* COUNTRY SELECTION */}
           <div className="mt-6 bg-white p-4 rounded-lg shadow-md">
             <h3 className="font-semibold mb-2">Select Country:</h3>
-            <select
-              value={selectedCountry}
-              //onChange={(e) => setSelectedCountry(e.target.value)}
-              onChange={(e) => handleCountryChange(e.target.value)} // 👈 Use the new handler
-              className="border rounded-lg px-3 py-2 w-full sm:w-1/3"
-            >
-              <option value="US">United States</option>
-              <option value="IN">India</option>
-              <option value="CA">Canada</option>
-              <option value="GB">United Kingdom</option>
-              <option value="AU">Australia</option>
-              <option value="ZA">South Africa</option>
-              <option value="AE">United Arab Emirates</option>
-            </select>
+
+            {countriesLoading ? (
+  <p>Loading countries...</p>
+) : (countriesData?.countries?.length ?? 0) > 0 ? (
+  <select
+    value={selectedCountry}
+    onChange={(e) => handleCountryChange(e.target.value)}
+    className="border rounded-lg px-3 py-2 w-full sm:w-1/3"
+  >
+    {/* ✅ Add placeholder option */}
+      <option value="" disabled>
+        -- Select a Country --
+      </option>
+    {countriesData?.countries?.map((country) => (
+      <option key={country._id} value={country.code}>
+        {country.name} ({country.code})
+      </option>
+    ))}
+  </select>
+) : (
+  <p>No countries available</p>
+)}
+
           </div>
+
+          
 
           {/* Shipping Options */}
           <div className="mt-4">
