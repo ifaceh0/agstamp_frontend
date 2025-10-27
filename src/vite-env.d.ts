@@ -146,6 +146,8 @@ interface CartState {
   cart: CartData | null;
   loading: boolean;
   ShippingType?:string;
+  shippingRate?:number;
+  selectedCountry?:string;
 }
 
 interface Carousel {

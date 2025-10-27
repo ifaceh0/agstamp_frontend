@@ -346,7 +346,7 @@
 import React, { useState } from "react";
 import { useGetAllCountriesQuery, useAddCountryMutation, useDeleteCountryMutation } from "../../Redux/Api/adminApi";//, useUpdateCountryMutation
 import { toast } from "react-toastify";
-import { Plus, Edit2, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X } from "lucide-react";// Edit2,
 
 const CountriesAdmin: React.FC = () => {
   const { data, isLoading, refetch } = useGetAllCountriesQuery();
@@ -378,12 +378,12 @@ const CountriesAdmin: React.FC = () => {
     }
   };
 
-  const handleEdit = (country: any) => {
-    setEditingCountry(country);
-    setEditName(country.name);
-    setEditCode(country.code);
-    setShowEditModal(true);
-  };
+  // const handleEdit = (country: any) => {
+  //   setEditingCountry(country);
+  //   setEditName(country.name);
+  //   setEditCode(country.code);
+  //   setShowEditModal(true);
+  // };
 
   const handleUpdate = async () => {
     if (!editName || !editCode) {
@@ -469,14 +469,14 @@ const CountriesAdmin: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-4 sm:px-6 py-4 whitespace-nowrap text-right space-x-2">
-                      <button 
+                      {/* <button 
                         onClick={() => handleEdit(c)}
                        // disabled={isUpdating || isDeleting}
                         className="inline-flex items-center p-2 text-blue-600 hover:text-blue-900 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-50"
                         title="Edit"
                       >
                         <Edit2 size={18} />
-                      </button>
+                      </button> */}
                       <button 
                         onClick={async () => {
                           if (!window.confirm("Delete?")) return;
