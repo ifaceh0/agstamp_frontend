@@ -157,7 +157,7 @@ interface CheckoutSessionData {
   customerName: string;
   selectedCountry?: string; // ✅ Add this
   shippingType?: string;
-  shippingAmount?: number;
+  shippingRate?: number;
   metadata?: any;
 }
 

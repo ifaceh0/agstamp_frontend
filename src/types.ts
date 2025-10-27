@@ -63,4 +63,5 @@ export interface CartState {
   items: CartItem[];
   ShippingType: string;
   selectedCountry: string;
+  shippingRate: number;
 }

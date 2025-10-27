@@ -4,7 +4,9 @@ const initialState: CartState = {
     success: false,
     cart: null,
     loading: true,
-    ShippingType:""
+    ShippingType:"",
+    shippingRate: 0,
+    selectedCountry: "US"
 };
 
 // Create Slice
@@ -22,13 +24,19 @@ const cartSlice = createSlice({
             state.loading = action.payload;
         },
         updateSelectedCountry: (state, action: PayloadAction<string>) => {
-            if (state.cart) {
-                state.cart.selectedCountry = action.payload;
-            }
+            state.selectedCountry = action.payload;
+            
+            // if (state.cart) {
+            //     state.cart.selectedCountry = action.payload;
+            // }
+        },
+        // ✅ Add new action for shipping rate
+        updateShippingRate: (state, action: PayloadAction<number>) => {
+            state.shippingRate = action.payload;
         },
     },
 });
 
 // Export actions & reducer
-export const {addToCartAction,setCartLording,updateSelectedCountry} = cartSlice.actions;//,updateSelectedCountry
+export const {addToCartAction,setCartLording,updateSelectedCountry,updateShippingRate} = cartSlice.actions;//,updateSelectedCountry
 export default cartSlice;
