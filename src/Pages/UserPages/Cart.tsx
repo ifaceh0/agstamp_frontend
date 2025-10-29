@@ -2230,7 +2230,7 @@
 //   <div className="w-3 h-3 border-[2px] border-t-transparent border-r-blue-500 border-b-transparent border-l-blue-500 rounded-full animate-spin"></div>
 // );
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../Redux/Store";
@@ -2252,6 +2252,7 @@ import countries from 'world-countries';
 const Cart: React.FC = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const selectRef = useRef<HTMLSelectElement>(null);
   
   // Sort and format countries for the dropdown
   const sortedCountries = useMemo(() => {
@@ -2293,6 +2294,12 @@ const Cart: React.FC = () => {
       setSelectedShipping("international");
       const rate = shippingRatesData?.internationalPrice || 0;
       dispatch(updateShippingRate(rate));
+    }
+
+    // Close dropdown after selection
+    setIsCountryDropdownOpen(false);
+    if (selectRef.current) {
+      selectRef.current.blur();
     }
   };
 
@@ -2502,6 +2509,7 @@ const Cart: React.FC = () => {
                 `}
               </style>
               <select
+                ref={selectRef}
                 value={selectedCountry}
                 onChange={(e) => handleCountryChange(e.target.value)}
                 onFocus={() => setIsCountryDropdownOpen(true)}
@@ -2520,12 +2528,12 @@ const Cart: React.FC = () => {
                   backgroundPosition: 'right 0.75rem center',
                   backgroundSize: '1.5em 1.5em',
                   paddingRight: '2.5rem',
-                  overflow: isCountryDropdownOpen ? 'auto' : 'hidden'
+                  overflow: isCountryDropdownOpen ? 'auto' : 'hidden',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none'
                 }}
               >
-                <option value="" disabled className="text-gray-400 font-semibold bg-gray-50">
-                  -- Select a Country --
-                </option>
                 {sortedCountries.map((country) => (
                   <option 
                     key={country.code} 
@@ -2587,9 +2595,11 @@ const Cart: React.FC = () => {
 
                 <label 
                   className={`flex items-center space-x-3 p-4 border-2 rounded-lg cursor-pointer transition-all
-                    ${selectedShipping === "international" 
-                      ? "border-blue-500 bg-blue-50" 
-                      : "border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400"
+                    ${selectedCountry === "US" 
+                      ? "opacity-50 cursor-not-allowed bg-gray-100 border-gray-200" 
+                      : selectedShipping === "international" 
+                        ? "border-blue-500 bg-blue-50" 
+                        : "border-gray-300 bg-white hover:bg-gray-50 hover:border-gray-400"
                     }`}
                 >
                   <input
@@ -2598,10 +2608,18 @@ const Cart: React.FC = () => {
                     value="international"
                     checked={selectedShipping === "international"}
                     onChange={() => handleShippingChange("international")}
-                    className="w-5 h-5 text-blue-600 cursor-pointer focus:ring-2 focus:ring-blue-500"
+                    disabled={selectedCountry === "US"}
+                    className="w-5 h-5 text-blue-600 cursor-pointer focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed"
                   />
                   <div className="flex-1 flex justify-between items-center">
-                    <span className="font-medium text-gray-800">🌍 International Shipping</span>
+                    <div>
+                      <span className="font-medium text-gray-800">🌍 International Shipping</span>
+                      {selectedCountry === "US" && (
+                        <span className="block text-xs text-gray-500 mt-1">
+                          (Only available for non-US addresses)
+                        </span>
+                      )}
+                    </div>
                     <span className="font-bold text-lg text-gray-900">
                       ${shippingRatesData.internationalPrice.toFixed(2)}
                     </span>
