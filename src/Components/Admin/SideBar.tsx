@@ -5,7 +5,7 @@ import {
   FiList,
   FiHome,
   FiUsers,
-  FiSettings,
+  //FiSettings,
   FiMenu,
   FiX,
   FiFolder,
@@ -222,7 +222,7 @@ const SideBar: React.FC = () => {
             </NavLink>
           </div>
 
-          <NavLink
+          {/* <NavLink
             to="/admin/settings"
             onClick={() => isMobile && setIsOpen(false)}
             className={({ isActive }) =>
@@ -233,8 +233,8 @@ const SideBar: React.FC = () => {
           >
             <FiSettings className="mr-3" />
             Settings
-          </NavLink>
-          <NavLink
+          </NavLink> */}
+          {/* <NavLink
             to="/admin/countries"
             onClick={() => isMobile && setIsOpen(false)}
             className={({ isActive }) =>
@@ -245,7 +245,7 @@ const SideBar: React.FC = () => {
           >
             <FiSettings className="mr-3" />
             Countries
-          </NavLink>  
+          </NavLink>   */}
         </nav>
       </div>
 
