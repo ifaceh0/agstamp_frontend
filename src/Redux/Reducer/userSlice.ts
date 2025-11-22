@@ -3,7 +3,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 const initialState: UserState = {
     success: false,
     user: undefined,
-    loading: true,
+    loading: false,
 };
 
 // Create Slice

@@ -1,17 +1,27 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { Category } from '../../types';
 
+
+
 export const adminApi = createApi({
   reducerPath: 'adminApi',
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_BACKEND_URL,
-    credentials: "include"
+    credentials: "include",
+    // ✅ CRITICAL: Add Authorization header as fallback
+    prepareHeaders: (headers) => {
+      const token = localStorage.getItem('agstampToken');
+      if (token) {
+        headers.set('Authorization', `Bearer ${token}`);
+      }
+      return headers;
+    },
   }),
-  keepUnusedDataFor: 0, // disables caching globally
+  keepUnusedDataFor: 0,
   endpoints: (build) => ({
     allStamps: build.query<StampResponse, void>({
       query: () => "/api/v1/admin/getallstamp",
-      keepUnusedDataFor: 0, // disable cache for this query
+      keepUnusedDataFor: 0,
     }),
     singleStamps: build.query<SingleStampResponse, string>({
       query: (id) => `/api/v1/admin/getstamp/${id}`,
@@ -23,7 +33,7 @@ export const adminApi = createApi({
         method: 'DELETE',
       }),
     }),
-    getAllCarousels: build.query<{Carousels:Carousel[]},void>({
+    getAllCarousels: build.query<{ Carousels: Carousel[] }, void>({
       query: () => `api/v1/admin/getallcarousel`,
     }),
     deleteCarousel: build.mutation({
@@ -32,51 +42,50 @@ export const adminApi = createApi({
         method: "DELETE",
       }),
     }),
-    getAllSubscribers: build.query<SubscriberResponse,void>({
+    getAllSubscribers: build.query<SubscriberResponse, void>({
       query: () => `api/v1/admin/getallsubscribers`,
     }),
-    sendMailToSubscribers: build.mutation<{ success:boolean, message:string },{selectedSubscribers:string[],subject:string,message:string}>({
+    sendMailToSubscribers: build.mutation<{ success: boolean, message: string }, { selectedSubscribers: string[], subject: string, message: string }>({
       query: (data) => ({
         url: `api/v1/admin/sendmailtosubscribers`,
         method: "POST",
-        body:data
+        body: data
       }),
     }),
-    getAllUsersOrder: build.query<{success:boolean, orders:Order50[]},void>({
+    getAllUsersOrder: build.query<{ success: boolean, orders: Order50[] }, void>({
       query: () => `api/v1/admin/usersallorders`,
     }),
-    updateOrder: build.mutation<{success:boolean, orders:Order50[]}, {id:string,status:string} >({
-      query: ({id,status}) => ({
+    updateOrder: build.mutation<{ success: boolean, orders: Order50[] }, { id: string, status: string }>({
+      query: ({ id, status }) => ({
         url: `api/v1/admin/updateOrder`,
         method: "PATCH",
-        body:{id,status}
+        body: { id, status }
       }),
     }),
-    getDashBoardData: build.query<OrderChartResponse,void>({
+    getDashBoardData: build.query<OrderChartResponse, void>({
       query: () => `api/v1/admin/dashBoardData`,
     }),
-    getAllFeedback: build.query<ContactData,void>({
+    getAllFeedback: build.query<ContactData, void>({
       query: () => `api/v1/admin/all/feedback`,
     }),
-    // 🔹 CATEGORY ENDPOINTS
     getAllCategories: build.query<Category[], void>({
       query: () => `api/v1/admin/getcategories`,
     }),
-    addCategory: build.mutation<{_id:string, name:string}, {name:string}>({
+    addCategory: build.mutation<{ _id: string, name: string }, { name: string }>({
       query: (data) => ({
         url: `/api/v1/admin/addcategories`,
         method: "POST",
         body: data,
       }),
     }),
-    updateCategory: build.mutation<{_id:string, name:string}, {id:string, name:string}>({
+    updateCategory: build.mutation<{ _id: string, name: string }, { id: string, name: string }>({
       query: ({ id, name }) => ({
         url: `/api/v1/admin/updatecategory/${id}`,
         method: "PUT",
         body: { name },
       }),
     }),
-    deleteCategory: build.mutation<{ success:boolean }, string>({
+    deleteCategory: build.mutation<{ success: boolean }, string>({
       query: (id) => ({
         url: `/api/v1/admin/deletecategory/${id}`,
         method: "DELETE",
@@ -86,12 +95,12 @@ export const adminApi = createApi({
       query: () => `/api/v1/admin/shipping-rates`,
     }),
     updateShippingRate: build.mutation<{ success: boolean; message: string }, { type: string; price: number }>({
-      query: () => ({
+      query: (data) => ({
         url: `/api/v1/admin/shipping-rates`,
         method: "PATCH",
+        body: data,
       }),
     }),
-    // 🔹 COUNTRY ENDPOINTS
     getAllCountries: build.query<{ success: boolean; countries: { _id: string; name: string; code: string }[] }, void>({
       query: () => `/api/v1/admin/countries`,
     }),
@@ -123,14 +132,12 @@ export const {
   useUpdateOrderMutation,
   useGetDashBoardDataQuery,
   useGetAllFeedbackQuery,
-   // 🔹 Category hooks
   useGetAllCategoriesQuery,
   useAddCategoryMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
   useGetShippingRatesQuery,
   useUpdateShippingRateMutation,
-  // 🔹 Country hooks
   useGetAllCountriesQuery,
   useAddCountryMutation,
   useDeleteCountryMutation,
@@ -138,3 +145,139 @@ export const {
 
 export default adminApi;
 
+// export const adminApi = createApi({
+//   reducerPath: 'adminApi',
+//   baseQuery: fetchBaseQuery({
+//     baseUrl: import.meta.env.VITE_BACKEND_URL,
+//     credentials: "include"
+//   }),
+//   keepUnusedDataFor: 0, // disables caching globally
+//   endpoints: (build) => ({
+//     allStamps: build.query<StampResponse, void>({
+//       query: () => "/api/v1/admin/getallstamp",
+//       keepUnusedDataFor: 0, // disable cache for this query
+//     }),
+//     singleStamps: build.query<SingleStampResponse, string>({
+//       query: (id) => `/api/v1/admin/getstamp/${id}`,
+//       keepUnusedDataFor: 0,
+//     }),
+//     deleteStamp: build.mutation<StampResponse, string>({
+//       query: (id) => ({
+//         url: `/api/v1/admin/deleteStamp/${id}`,
+//         method: 'DELETE',
+//       }),
+//     }),
+//     getAllCarousels: build.query<{Carousels:Carousel[]},void>({
+//       query: () => `api/v1/admin/getallcarousel`,
+//     }),
+//     deleteCarousel: build.mutation({
+//       query: (id) => ({
+//         url: `api/v1/admin/deletecarousel/${id}`,
+//         method: "DELETE",
+//       }),
+//     }),
+//     getAllSubscribers: build.query<SubscriberResponse,void>({
+//       query: () => `api/v1/admin/getallsubscribers`,
+//     }),
+//     sendMailToSubscribers: build.mutation<{ success:boolean, message:string },{selectedSubscribers:string[],subject:string,message:string}>({
+//       query: (data) => ({
+//         url: `api/v1/admin/sendmailtosubscribers`,
+//         method: "POST",
+//         body:data
+//       }),
+//     }),
+//     getAllUsersOrder: build.query<{success:boolean, orders:Order50[]},void>({
+//       query: () => `api/v1/admin/usersallorders`,
+//     }),
+//     updateOrder: build.mutation<{success:boolean, orders:Order50[]}, {id:string,status:string} >({
+//       query: ({id,status}) => ({
+//         url: `api/v1/admin/updateOrder`,
+//         method: "PATCH",
+//         body:{id,status}
+//       }),
+//     }),
+//     getDashBoardData: build.query<OrderChartResponse,void>({
+//       query: () => `api/v1/admin/dashBoardData`,
+//     }),
+//     getAllFeedback: build.query<ContactData,void>({
+//       query: () => `api/v1/admin/all/feedback`,
+//     }),
+//     // 🔹 CATEGORY ENDPOINTS
+//     getAllCategories: build.query<Category[], void>({
+//       query: () => `api/v1/admin/getcategories`,
+//     }),
+//     addCategory: build.mutation<{_id:string, name:string}, {name:string}>({
+//       query: (data) => ({
+//         url: `/api/v1/admin/addcategories`,
+//         method: "POST",
+//         body: data,
+//       }),
+//     }),
+//     updateCategory: build.mutation<{_id:string, name:string}, {id:string, name:string}>({
+//       query: ({ id, name }) => ({
+//         url: `/api/v1/admin/updatecategory/${id}`,
+//         method: "PUT",
+//         body: { name },
+//       }),
+//     }),
+//     deleteCategory: build.mutation<{ success:boolean }, string>({
+//       query: (id) => ({
+//         url: `/api/v1/admin/deletecategory/${id}`,
+//         method: "DELETE",
+//       }),
+//     }),
+//     getShippingRates: build.query<{ success: boolean; rates: { type: string; price: number }[] }, void>({
+//       query: () => `/api/v1/admin/shipping-rates`,
+//     }),
+//     updateShippingRate: build.mutation<{ success: boolean; message: string }, { type: string; price: number }>({
+//       query: () => ({
+//         url: `/api/v1/admin/shipping-rates`,
+//         method: "PATCH",
+//       }),
+//     }),
+//     // 🔹 COUNTRY ENDPOINTS
+//     getAllCountries: build.query<{ success: boolean; countries: { _id: string; name: string; code: string }[] }, void>({
+//       query: () => `/api/v1/admin/countries`,
+//     }),
+//     addCountry: build.mutation<{ success: boolean; country: { _id: string; name: string; code: string } }, { name: string; code: string }>({
+//       query: (data) => ({
+//         url: `/api/v1/admin/countries`,
+//         method: "POST",
+//         body: data,
+//       }),
+//     }),
+//     deleteCountry: build.mutation<{ success: boolean; message: string }, string>({
+//       query: (id) => ({
+//         url: `/api/v1/admin/countries/${id}`,
+//         method: "DELETE",
+//       }),
+//     }),
+//   }),
+// });
+
+// export const {
+//   useAllStampsQuery,
+//   useDeleteStampMutation,
+//   useSingleStampsQuery,
+//   useGetAllCarouselsQuery,
+//   useDeleteCarouselMutation,
+//   useGetAllSubscribersQuery,
+//   useSendMailToSubscribersMutation,
+//   useGetAllUsersOrderQuery,
+//   useUpdateOrderMutation,
+//   useGetDashBoardDataQuery,
+//   useGetAllFeedbackQuery,
+//    // 🔹 Category hooks
+//   useGetAllCategoriesQuery,
+//   useAddCategoryMutation,
+//   useUpdateCategoryMutation,
+//   useDeleteCategoryMutation,
+//   useGetShippingRatesQuery,
+//   useUpdateShippingRateMutation,
+//   // 🔹 Country hooks
+//   useGetAllCountriesQuery,
+//   useAddCountryMutation,
+//   useDeleteCountryMutation,
+// } = adminApi;
+
+// export default adminApi;

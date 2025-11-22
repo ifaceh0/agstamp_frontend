@@ -118,32 +118,210 @@
 //   useGetUserOrdersQuery
 // } = stripeApi;
 
-export const retrieveCheckoutSession = async (sessionId: string):Promise<any> => {
-  try {
-    const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/stripe/verify-session/${sessionId}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials:"include"
-    })
+// export const retrieveCheckoutSession = async (sessionId: string):Promise<any> => {
+//   try {
+//     const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/stripe/verify-session/${sessionId}`, {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       credentials:"include"
+//     })
 
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || "Failed to retrieve checkout session")
-    }
+//     if (!response.ok) {
+//       const errorData = await response.json()
+//       throw new Error(errorData.message || "Failed to retrieve checkout session")
+//     }
 
-    const session = await response.json()
-    return session
-  } catch (error) {
-    console.error("Error retrieving checkout session:", error)
-    throw error
-  }
-}
+//     const session = await response.json()
+//     return session
+//   } catch (error) {
+//     console.error("Error retrieving checkout session:", error)
+//     throw error
+//   }
+// }
+
+// import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+// // ✅ Define the type for checkout session data
+// interface CheckoutSessionData {
+//   items: Array<{
+//     mongoID: string;
+//     name: string;
+//     description?: string;
+//     price: number;
+//     quantity: number;
+//     images?: any[];
+//   }>;
+//   customerEmail: string;
+//   customerName: string;
+//   selectedCountry?: string; // ✅ Add this
+//   shippingType?: string;
+//   shippingRate?: number;
+//   metadata?: any;
+// }
+
+// // ✅ Define the response type
+// interface CheckoutSessionResponse {
+//   success: boolean;
+//   sessionId: string;
+//   url: string;
+//   message?: string;
+// }
+
+// export const stripeApi = createApi({
+//   reducerPath: 'stripeApi',
+//   baseQuery: fetchBaseQuery({ 
+//     baseUrl: `${import.meta.env.VITE_BACKEND_URL}/api/v1`,
+//     credentials: 'include',
+//     prepareHeaders: (headers) => {
+//       // Add any auth tokens if needed
+//       const token = localStorage.getItem('token');
+//       if (token) {
+//         headers.set('Authorization', `Bearer ${token}`);
+//       }
+//       return headers;
+//     }
+//   }),
+//   endpoints: (builder) => ({
+//     // ✅ Updated with proper types
+//     createCheckoutSession: builder.mutation<CheckoutSessionResponse, CheckoutSessionData>({
+//       query: (checkoutData) => ({
+//         url: '/stripe/create-checkout-session',
+//         method: 'POST',
+//         body: checkoutData
+//       })
+//     }),
+//     verifyCheckoutSession: builder.query({
+//       query: (sessionId) => ({
+//         url: `/stripe/verify-session/${sessionId}`,
+//         method: 'GET'
+//       })
+//     }),
+//     getUserOrders: builder.query({
+//       query: () => '/stripe/orders'
+//     })
+//   })
+// });
+
+// export const { 
+//   useCreateCheckoutSessionMutation, 
+//   useVerifyCheckoutSessionQuery,
+//   useGetUserOrdersQuery
+// } = stripeApi;
+
+// import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+
+// // ✅ Fixed retrieveCheckoutSession function with auth
+// export const retrieveCheckoutSession = async (sessionId: string): Promise<any> => {
+//   try {
+//     // ✅ Get token from localStorage
+//     const token = localStorage.getItem('agstampToken');
+    
+//     const headers: HeadersInit = {
+//       "Content-Type": "application/json",
+//     };
+    
+//     // ✅ Add Authorization header if token exists
+//     if (token) {
+//       headers['Authorization'] = `Bearer ${token}`;
+//     }
+    
+//     const response = await fetch(
+//       `${import.meta.env.VITE_BACKEND_URL}/api/v1/stripe/verify-session/${sessionId}`, 
+//       {
+//         method: "GET",
+//         headers: headers,
+//         credentials: "include"
+//       }
+//     );
+
+//     if (!response.ok) {
+//       const errorData = await response.json();
+//       throw new Error(errorData.message || "Failed to retrieve checkout session");
+//     }
+
+//     const session = await response.json();
+//     return session;
+//   } catch (error) {
+//     console.error("Error retrieving checkout session:", error);
+//     throw error;
+//   }
+// };
+
+
+
+// // ✅ Define the type for checkout session data
+// interface CheckoutSessionData {
+//   items: Array<{
+//     mongoID: string;
+//     name: string;
+//     description?: string;
+//     price: number;
+//     quantity: number;
+//     images?: any[];
+//   }>;
+//   customerEmail: string;
+//   customerName: string;
+//   selectedCountry?: string;
+//   shippingType?: string;
+//   shippingRate?: number;
+//   metadata?: any;
+// }
+
+// // ✅ Define the response type
+// interface CheckoutSessionResponse {
+//   success: boolean;
+//   sessionId: string;
+//   url: string;
+//   message?: string;
+// }
+
+// export const stripeApi = createApi({
+//   reducerPath: 'stripeApi',
+//   baseQuery: fetchBaseQuery({ 
+//     baseUrl: `${import.meta.env.VITE_BACKEND_URL}/api/v1`,
+//     credentials: 'include',
+//     prepareHeaders: (headers) => {
+//       // ✅ FIXED: Use correct token key 'agstampToken' instead of 'token'
+//       const token = localStorage.getItem('agstampToken');
+//       if (token) {
+//         headers.set('Authorization', `Bearer ${token}`);
+//       }
+//       return headers;
+//     }
+//   }),
+//   endpoints: (builder) => ({
+//     createCheckoutSession: builder.mutation<CheckoutSessionResponse, CheckoutSessionData>({
+//       query: (checkoutData) => ({
+//         url: '/stripe/create-checkout-session',
+//         method: 'POST',
+//         body: checkoutData
+//       })
+//     }),
+//     verifyCheckoutSession: builder.query({
+//       query: (sessionId) => ({
+//         url: `/stripe/verify-session/${sessionId}`,
+//         method: 'GET'
+//       })
+//     }),
+//     getUserOrders: builder.query({
+//       query: () => '/stripe/orders'
+//     })
+//   })
+// });
+
+
+
+// export const { 
+//   useCreateCheckoutSessionMutation, 
+//   useVerifyCheckoutSessionQuery,
+//   useGetUserOrdersQuery
+// } = stripeApi;
 
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 
-// ✅ Define the type for checkout session data
+// ✅ Define types
 interface CheckoutSessionData {
   items: Array<{
     mongoID: string;
@@ -155,13 +333,12 @@ interface CheckoutSessionData {
   }>;
   customerEmail: string;
   customerName: string;
-  selectedCountry?: string; // ✅ Add this
+  selectedCountry?: string;
   shippingType?: string;
   shippingRate?: number;
   metadata?: any;
 }
 
-// ✅ Define the response type
 interface CheckoutSessionResponse {
   success: boolean;
   sessionId: string;
@@ -169,37 +346,88 @@ interface CheckoutSessionResponse {
   message?: string;
 }
 
+interface GuestOrderTrackResponse {
+  success: boolean;
+  order?: any;
+  message?: string;
+}
+
+// ✅ Retrieve session for AUTHENTICATED users
+export const retrieveCheckoutSession = async (sessionId: string): Promise<any> => {
+  const token = localStorage.getItem('agstampToken');
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  
+  const response = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/api/v1/stripe/verify-session/${sessionId}`, 
+    { method: "GET", headers, credentials: "include" }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to retrieve checkout session");
+  }
+  return response.json();
+};
+
+// ✅ Retrieve session for GUEST users (no auth)
+export const retrieveGuestCheckoutSession = async (sessionId: string): Promise<any> => {
+  const response = await fetch(
+    `${import.meta.env.VITE_BACKEND_URL}/api/v1/stripe/guest/verify-session/${sessionId}`, 
+    { method: "GET", headers: { "Content-Type": "application/json" } }
+  );
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to retrieve guest checkout session");
+  }
+  return response.json();
+};
+
 export const stripeApi = createApi({
   reducerPath: 'stripeApi',
   baseQuery: fetchBaseQuery({ 
     baseUrl: `${import.meta.env.VITE_BACKEND_URL}/api/v1`,
     credentials: 'include',
     prepareHeaders: (headers) => {
-      // Add any auth tokens if needed
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
+      const token = localStorage.getItem('agstampToken');
+      if (token) headers.set('Authorization', `Bearer ${token}`);
       return headers;
     }
   }),
   endpoints: (builder) => ({
-    // ✅ Updated with proper types
+    // ========== AUTHENTICATED USER ENDPOINTS ==========
     createCheckoutSession: builder.mutation<CheckoutSessionResponse, CheckoutSessionData>({
-      query: (checkoutData) => ({
+      query: (data) => ({
         url: '/stripe/create-checkout-session',
         method: 'POST',
-        body: checkoutData
+        body: data
       })
     }),
     verifyCheckoutSession: builder.query({
-      query: (sessionId) => ({
-        url: `/stripe/verify-session/${sessionId}`,
-        method: 'GET'
-      })
+      query: (sessionId) => `/stripe/verify-session/${sessionId}`
     }),
     getUserOrders: builder.query({
       query: () => '/stripe/orders'
+    }),
+
+    // ========== GUEST CHECKOUT ENDPOINTS ==========
+    createGuestCheckoutSession: builder.mutation<CheckoutSessionResponse, CheckoutSessionData>({
+      query: (data) => ({
+        url: '/stripe/guest/create-checkout-session',
+        method: 'POST',
+        body: data
+      })
+    }),
+    verifyGuestCheckoutSession: builder.query({
+      query: (sessionId) => `/stripe/guest/verify-session/${sessionId}`
+    }),
+    trackGuestOrder: builder.mutation<GuestOrderTrackResponse, { email: string; orderId: string }>({
+      query: (data) => ({
+        url: '/stripe/guest/track-order',
+        method: 'POST',
+        body: data
+      })
     })
   })
 });
@@ -207,5 +435,9 @@ export const stripeApi = createApi({
 export const { 
   useCreateCheckoutSessionMutation, 
   useVerifyCheckoutSessionQuery,
-  useGetUserOrdersQuery
+  useGetUserOrdersQuery,
+  // ✅ NEW Guest exports
+  useCreateGuestCheckoutSessionMutation,
+  useVerifyGuestCheckoutSessionQuery,
+  useTrackGuestOrderMutation
 } = stripeApi;

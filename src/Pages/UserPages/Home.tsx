@@ -329,14 +329,14 @@ import {
   useGetWaveImgQuery,
   useSubscribeMailServiceMutation,
 } from "../../Redux/Api/userApi";
-import { useGetAllCarouselsQuery } from "../../Redux/Api/adminApi";
+import {useGetPublicCarouselsQuery} from "../../Redux/Api/userApi";
 import { toast } from "react-toastify";
 
 const Home: React.FC = () => {
   const [email, setEmail] = useState("");
   const [showScrollButton, setShowScrollButton] = useState(false);
   const { data } = useGetWaveImgQuery();
-  const { data: stampCategories } = useGetAllCarouselsQuery();
+  const { data: stampCategories } = useGetPublicCarouselsQuery();
   const [subscribeMailService] = useSubscribeMailServiceMutation();
 
   const paragraphClass = "text-base text-gray-800 mt-2";
