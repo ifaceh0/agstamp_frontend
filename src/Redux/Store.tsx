@@ -4,6 +4,7 @@ import userSlice from "./Reducer/userSlice";
 import adminApi from "./Api/adminApi";
 import cartSlice from "./Reducer/cartSlice";
 import { stripeApi } from "../services/stripe"
+import guestCartSlice from "./Reducer/guestCartSlice"; // ✅ ADD THIS IMPORT
 
 export const store = configureStore({
     reducer:{
@@ -12,6 +13,8 @@ export const store = configureStore({
         [adminApi.reducerPath]:adminApi.reducer,
         [cartSlice.reducerPath]:cartSlice.reducer,
         [stripeApi.reducerPath]: stripeApi.reducer,
+
+        guestCart: guestCartSlice, // ✅ ADD THIS LINE
     },
     middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(userApi.middleware).concat(adminApi.middleware).concat(stripeApi.middleware),
 });

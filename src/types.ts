@@ -65,3 +65,11 @@ export interface CartState {
   selectedCountry: string;
   shippingRate: number;
 }
+
+// In your types file
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  user: User;
+  token?: string; // ✅ Add this line
+}

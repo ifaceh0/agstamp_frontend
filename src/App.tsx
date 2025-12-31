@@ -1,3 +1,4 @@
+import axios from "axios";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./Pages/UserPages/Home";
 import AboutUs from "./Pages/UserPages/AboutUs";
@@ -34,9 +35,26 @@ import CategoryManager from "./Components/Admin/CategoryManager";
 import ShippingRateManager from "./Components/Admin/ShippingRateManager";
 import CountriesAdmin from "./Components/Admin/CountriesAdmin";
 
+// ✅ NEW: Guest checkout pages
+import GuestCart from "./Pages/UserPages/GuestCart";
+import GuestCheckoutPage from "./Pages/UserPages/GuestCheckoutPage";
+import TrackOrder from "./Pages/UserPages/TrackOrder";
+
 
 
 const App = () => {
+  axios.defaults.baseURL = import.meta.env.VITE_BACKEND_URL;
+axios.defaults.withCredentials = true;
+
+// Add auth header interceptor
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('agstampToken');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
   const dispatch = useDispatch();
   const { data,isError } = useUserInfoQuery();
   const {data:cartData,isError:ie} = useUserCartItemQuery();
@@ -77,6 +95,15 @@ const App = () => {
             <Route path="/checkout/success" element={<SuccessPage />} />
             <Route path="/checkout/cancel" element={<CancelPage />} />
             <Route path="/orders" element={<AllOrder />} />
+
+            {/* ✅ NEW: Guest Cart & Checkout Routes */}
+            <Route path="/guest-cart" element={<GuestCart />} />
+            <Route path="/guest-checkout" element={<GuestCheckoutPage />} />
+            <Route path="/track-order" element={<TrackOrder />} />
+
+            {/* ✅ Success/Cancel - Handles both guest and user */}
+            <Route path="/checkout/success" element={<SuccessPage />} />
+            <Route path="/checkout/cancel" element={<CancelPage />} />
           </Route>
           {/* admin routes  */}
           <Route path="/admin" element={<AdminLayout/>}>
