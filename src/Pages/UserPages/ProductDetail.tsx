@@ -1065,6 +1065,8 @@ const ProductDetail: React.FC = () => {
 
   // ✅ NEW: Check if user is logged in
   const { user } = useSelector((state: RootState) => state.userSlice);
+  const guestCartItems = useSelector((state: RootState) => state.guestCart.items);
+  const guestCartCount = guestCartItems.reduce((total, item) => total + item.quantity, 0);
   const isLoggedIn = !!user;
 
   if (isLoading) return <FullscreenLoader />;
@@ -1282,15 +1284,30 @@ const ProductDetail: React.FC = () => {
                   Add to Cart
                 </motion.button>
 
-                {/* ✅ UPDATED: Navigate to correct cart */}
                 <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleViewCart}
+                  className="relative w-full py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold flex items-center justify-center transition-colors"
+                >
+                <FiShoppingCart className="mr-2" />
+                  View Cart
+                {!isLoggedIn && guestCartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                  {guestCartCount}
+                </span>
+                )}
+              </motion.button>
+
+                {/* ✅ UPDATED: Navigate to correct cart */}
+                {/* <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleViewCart}
                   className="w-full py-3 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-800 font-semibold flex items-center justify-center transition-colors"
                 >
                   View Cart
-                </motion.button>
+                </motion.button> */}
               </div>
             </div>
           </div>

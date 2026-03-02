@@ -28,9 +28,23 @@ const GuestCheckoutPage: React.FC = () => {
 
   const cartTotal = totalPrice + shippingRate;
 
+  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setGuestInfo({ ...guestInfo, [e.target.id]: e.target.value });
+  // };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setGuestInfo({ ...guestInfo, [e.target.id]: e.target.value });
-  };
+  let { id, value } = e.target;
+
+  // Restrict phone field
+  if (id === "phone") {
+    value = value.replace(/\D/g, "").slice(0, 10);
+  }
+
+  setGuestInfo((prev) => ({
+    ...prev,
+    [id]: value,
+  }));
+};
 
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -53,8 +67,12 @@ const GuestCheckoutPage: React.FC = () => {
         toast.error("Email addresses do not match");
         return;
       }
-      if (!guestInfo.phone.trim()) {
-        toast.error("Please enter your phone number");
+      // if (!guestInfo.phone.trim()) {
+      //   toast.error("Please enter your phone number");
+      //   return;
+      // }
+      if (!/^[0-9]{10}$/.test(guestInfo.phone)) {
+        toast.error("Please enter a valid 10-digit phone number");
         return;
       }
       if (items.length === 0) {
@@ -205,12 +223,31 @@ const GuestCheckoutPage: React.FC = () => {
                   placeholder="john@example.com"
                 />
               </div>
+              {/*
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone Number *</label>
                 <input
                   type="tel" id="phone" value={guestInfo.phone} onChange={handleInputChange}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
                   placeholder="555-123-4567"
+                />
+              </div>
+              */}
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  Phone Number *
+                </label>
+
+                <input
+                  type="tel"
+                  id="phone"
+                  value={guestInfo.phone}
+                  onChange={handleInputChange}
+                  maxLength={10}
+                  inputMode="numeric"
+                  pattern="[0-9]{10}"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2 border"
+                  placeholder="Enter 10 digit phone number"
                 />
               </div>
             </div>
